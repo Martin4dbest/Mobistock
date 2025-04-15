@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - MobiStock</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <!-- Registration Form Container -->
+    <div class="w-full max-w-lg bg-white rounded-xl shadow-md p-8">
+        <h2 class="text-3xl font-bold text-center mb-6 text-gray-800">Create Your Account</h2>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="mb-6">
+                {% for category, message in messages %}
+                <div class="px-4 py-2 rounded text-white {% if category == 'success' %}bg-green-500{% elif category == 'danger' %}bg-red-500{% else %}bg-blue-500{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Registration Form -->
+        <form method="POST" action="{{ url_for('register') }}">
+            <!-- Username Field -->
+            <div class="mb-4">
+                <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                <input type="text" name="username" id="username" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-500 focus:border-blue-500" placeholder="Enter your username">
+            </div>
+
+            <!-- Password Field -->
+            <div class="mb-4">
+                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" name="password" id="password" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-500 focus:border-blue-500" placeholder="Create a strong password">
+            </div>
+
+            <!-- Role Selection -->
+            <div class="mb-4">
+                <label for="role" class="block text-sm font-medium text-gray-700">Select Role</label>
+                <select name="role" id="role" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-500 focus:border-blue-500">
+                    <option value="seller">Seller</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition ease-in-out duration-300">Register</button>
+        </form>
+
+        <!-- Back Link -->
+        <div class="mt-6 text-sm text-center">
+            <a href="{{ url_for('admin_dashboard') }}" class="text-blue-600 hover:underline">← Back to Admin Dashboard</a>
+        </div>
+
+    </div>
+
+</body>
+
+</html>
