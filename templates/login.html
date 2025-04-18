@@ -4,69 +4,78 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login - MobiStock</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <title>Login - JOMAVIKO CO. LTD</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
+<body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen font-sans">
 
   <!-- Navbar -->
-  <header class="bg-blue-900 text-white shadow">
+  <header class="bg-blue-900 text-white shadow-md">
     <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-      <h1 class="text-2xl font-bold">Mobistock</h1>
+      <h1 class="text-2xl font-bold tracking-wide">JOMAVIKO CO. LTD</h1>
       <nav class="space-x-4">
-        <a href="{{ url_for('login') }}" class="text-gray-300 hover:text-teal-400 font-medium">Login</a>
+        <a href="{{ url_for('login') }}" class="text-gray-300 hover:text-teal-400 font-medium transition duration-300">Login</a>
       </nav>
     </div>
   </header>
 
   <!-- Login Section -->
-  <section class="max-w-lg mx-auto bg-white p-8 rounded-lg shadow-lg mt-12">
-    <h2 class="text-2xl font-semibold text-center mb-6">Login to Your Account</h2>
+  <section class="flex-grow flex items-center justify-center py-16">
+    <div class="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-gray-200">
+      <h2 class="text-3xl font-semibold text-center text-blue-900 mb-6">Sign in to Your Account</h2>
 
-    <form method="POST" action="{{ url_for('login') }}">
-      {% if get_flashed_messages() %}
-        <div id="flash-message" class="bg-red-500 text-white p-4 rounded mb-4">
-          {% for message in get_flashed_messages() %}
-            <p>{{ message }}</p>
-          {% endfor %}
+      <form method="POST" action="{{ url_for('login') }}">
+        {% if get_flashed_messages() %}
+          <div id="flash-message" class="bg-red-500 text-white p-4 rounded mb-4 text-sm">
+            {% for message in get_flashed_messages() %}
+              <p>{{ message }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="mb-4">
+          <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+          <input type="text" name="username" id="username" placeholder="Enter your username"
+            class="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:outline-none"
+            required>
         </div>
-      {% endif %}
-      
-      <div class="mb-4">
-        <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
-        <input type="text" name="username" id="username" placeholder="Enter your username" class="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-      </div>
 
-      <div class="mb-6">
-        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-        <input type="password" name="password" id="password" placeholder="Enter your password" class="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-      </div>
+        <div class="mb-6">
+          <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+          <input type="password" name="password" id="password" placeholder="Enter your password"
+            class="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:outline-none"
+            required>
+        </div>
 
-      <button type="submit" class="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">Login</button>
-    </form>
+        <button type="submit"
+          class="w-full py-3 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded-lg transition duration-300">
+          Login
+        </button>
+      </form>
+    </div>
   </section>
 
   <!-- Footer -->
-  <footer class="bg-gray-800 text-white py-6 mt-auto">
-    <div class="max-w-6xl mx-auto px-4 text-center">
-      <p class="text-sm">&copy; 2025 Mobistock. All rights reserved.</p>
-      <p class="text-sm">Developed by Martin Agoha</p>
+  <footer class="bg-gray-900 text-gray-300 py-6 mt-auto">
+    <div class="max-w-6xl mx-auto px-4 text-center text-sm">
+      <p>&copy; 2025 <span class="font-semibold">JOMAVIKO CO. LTD</span>. All rights reserved.</p>
+      <p>Developed by Martin Agoha</p>
     </div>
   </footer>
 
-  <!-- JavaScript to auto-dismiss flash messages -->
+  <!-- Flash Message Fade Script -->
   <script>
-    window.onload = function() {
+    window.onload = function () {
       const flashMessage = document.getElementById("flash-message");
       if (flashMessage) {
-        setTimeout(function() {
+        setTimeout(function () {
           flashMessage.style.opacity = 0;
           flashMessage.style.transition = "opacity 1s ease";
-          setTimeout(function() {
-            flashMessage.remove(); // Remove the flash message from DOM after fading out
-          }, 1000); // Wait for the fade-out transition to complete
-        }, 3000); // Wait 3 seconds before starting to fade out
+          setTimeout(function () {
+            flashMessage.remove();
+          }, 1000);
+        }, 3000);
       }
     }
   </script>

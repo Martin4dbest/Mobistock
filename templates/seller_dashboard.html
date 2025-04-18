@@ -1,45 +1,218 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <title>Seller Dashboard - MobiStock</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Seller Dashboard - JOMAVIKO CO. LTD</title>
+
+  <!-- Tailwind & AlpineJS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 
-<body class="bg-gray-100 min-h-screen flex flex-col">
+<body class="bg-gray-100 min-h-screen flex flex-col font-sans">
 
-    <header class="bg-blue-900 text-white shadow p-4">
-        <div class="max-w-7xl mx-auto px-4 flex items-center justify-between">
-            <h1 class="text-2xl font-bold">MobiStock Seller</h1>
-            <nav class="space-x-4">
-                <a href="{{ url_for('logout') }}" class="text-gray-300 hover:text-teal-400">Logout</a>
-            </nav>
-        </div>
-    </header>
+  <!-- Header -->
+  <header class="bg-gray-800 text-white shadow-md p-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <h1 class="text-2xl font-bold tracking-wide">📦 JOMAVIKO CO. LTD Seller</h1>
+      <a href="{{ url_for('logout') }}" class="text-gray-300 hover:text-teal-400">Logout</a>
+    </div>
+  </header>
 
-    <main class="flex-grow container mx-auto p-6">
-        <h1 class="text-3xl font-semibold mb-8">Seller Dashboard</h1>
+  <!-- Main Content -->
+  <main class="flex-grow flex" x-data="{ sidebarOpen: true }">
 
-        <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
-            <h3 class="text-xl font-semibold mb-4">Products</h3>
-            <ul>
-                {% for product in products %}
-                    <li class="mb-2">
-                        <span class="font-medium">{{ product.name }} - ${{ product.price }}</span>
-                        <a href="{{ url_for('place_order', product_id=product.id) }}" class="text-blue-600 hover:text-blue-800 ml-4">Place Order</a>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-    </main>
+    <!-- Sidebar -->
+    <aside
+      class="transition-all duration-300 ease-in-out bg-gray-200 text-gray-800 shadow-md"
+      :class="sidebarOpen ? 'w-64 p-4' : 'w-16 p-2'"
+    >
+      <!-- Toggle Button -->
+      <div class="flex justify-end mb-4">
+        <button
+          @click="sidebarOpen = !sidebarOpen"
+          class="focus:outline-none text-black hover:text-teal-400"
+          title="Toggle Sidebar"
+        >
+          <svg x-show="!sidebarOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <svg x-show="sidebarOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M6 18L18 12L6 6V18Z" />
+          </svg>
+        </button>
+      </div>
 
-    <footer class="bg-gray-800 text-white py-6 mt-auto">
-        <div class="max-w-6xl mx-auto px-4 text-center">
-            <p class="text-sm">&copy; 2025 Mobistock. All rights reserved.</p>
-        </div>
-    </footer>
+      <!-- Seller Info -->
+      <div x-show="sidebarOpen" class="transition-all duration-300 ease-in-out">
+        <h2 class="text-lg font-semibold mb-3 border-b pb-1">👤 Seller Info</h2>
+        <p class="mb-1"><strong>Name:</strong> {{ seller_details.name }}</p>
+        <p class="mb-1"><strong>Location:</strong> {{ seller_details.location }}</p>
+        <p><strong>Role:</strong> {{ seller_details.role }}</p>
+      </div>
+    </aside>
+
+    <!-- Main Section -->
+    <section class="flex-grow bg-white p-6 mx-4 my-6 rounded-lg shadow-lg">
+      <h2 class="text-2xl font-semibold mb-6 text-gray-800">📋 Product List</h2>
+
+      <div class="overflow-x-auto">
+        <table class="w-full table-auto border-collapse">
+          <thead>
+            <tr class="bg-gray-800 text-white text-left text-sm">
+              <th class="px-6 py-3">Product</th>
+              <th class="px-6 py-3">ID Number</th>
+              <th class="px-6 py-3">Price ($)</th>
+              <th class="px-6 py-3">Selling Price ($)</th>
+              <th class="px-6 py-3">In Stock</th>
+              <th class="px-6 py-3">Order Qty</th>
+              <th class="px-6 py-3">Amount Sold ($)</th>
+              <th class="px-6 py-3">Date & Time</th>
+              <th class="px-6 py-3">Action</th>
+            </tr>
+          </thead>
+          <tbody class="text-sm">
+            {% for product in products %}
+            <tr class="border-b hover:bg-gray-50">
+              <td class="p-2 font-medium">{{ product.name }}</td>
+              <td class="px-6 py-3 text-gray-500">{{ product.identification_number }}</td>          
+              <td class="p-2">${{ "%.2f"|format(product.price) }}</td>
+
+              <!-- Editable Selling Price -->
+              <td class="p-2">
+                <input
+                  type="number"
+                  step="0.01"
+                  id="selling-price-{{ product.id }}"
+                  class="w-20 p-1 border border-gray-300 rounded text-sm"
+                  value="{{ product.selling_price or '' }}"
+                  @input="calculateAmountSold({{ product.id }})"
+                />
+              </td>
+
+              
+              <!-- Seller View: In Stock -->
+              <td class="px-6 py-3">
+                <input 
+                  type="text" 
+                  id="instock-{{ product.id }}" 
+                  value="{{ product.in_stock if product.in_stock is not none else '' }}" 
+                  data-original-stock="{{ product.in_stock if product.in_stock is not none else 0 }}"
+                  class="w-20 p-1 border border-gray-300 rounded-md text-sm bg-gray-50" 
+                  readonly 
+                />
+              </td>
+
+                
+                
+
+              <!-- Input: Order Quantity -->
+              <td class="p-2">
+                <input
+                  type="number"
+                  id="order-qty-{{ product.id }}"
+                  class="w-20 p-1 border border-gray-300 rounded text-sm"
+                  @input="calculateAmountSold({{ product.id }})"
+                />
+              </td>
+
+              <!-- Amount Sold -->
+              <td class="p-2">
+                <input
+                  type="text"
+                  id="amount-sold-{{ product.id }}"
+                  class="w-24 p-1 border border-gray-300 rounded text-sm bg-gray-50"
+                  readonly
+                />
+              </td>
+
+              <!-- Date & Time -->
+              <td class="p-2">
+                <input
+                  type="text"
+                  id="date-sold-{{ product.id }}"
+                  class="w-32 p-1 border border-gray-300 rounded text-sm bg-gray-50"
+                  readonly
+                />
+              </td>
+
+              <!-- Action -->
+              <td class="p-2">
+                <button
+                  @click="sendOrder({{ product.id }})"
+                  class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-1 rounded shadow text-sm"
+                >
+                  Send
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 text-white py-4 text-center text-sm">
+    &copy; 2025 JOMAVIKO CO. LTD. All rights reserved.
+  </footer>
+
+  <!-- Script -->
+  <script>
+    function calculateAmountSold(productId) {
+      const qtyInput = document.getElementById(`order-qty-${productId}`);
+      const sellingPriceInput = document.getElementById(`selling-price-${productId}`);
+      const amountSoldInput = document.getElementById(`amount-sold-${productId}`);
+  
+      const qty = parseFloat(qtyInput.value) || 0;
+      const sellingPrice = parseFloat(sellingPriceInput.value) || 0;
+      const total = (qty * sellingPrice).toFixed(2);
+  
+      amountSoldInput.value = total;
+    }
+  
+    function sendOrder(productId) {
+      const qty = document.getElementById(`order-qty-${productId}`).value;
+      const sellingPrice = document.getElementById(`selling-price-${productId}`).value;
+      const amount = document.getElementById(`amount-sold-${productId}`).value;
+      const now = new Date().toLocaleString();
+      document.getElementById(`date-sold-${productId}`).value = now;
+  
+      // Send to backend
+      fetch('/send-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          product_id: productId,
+          quantity: qty,
+          selling_price: sellingPrice,
+          amount_sold: amount,
+          date_sold: now
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert("✅ Order successfully sent to admin dashboard!");
+        } else {
+          alert("⚠️ Error saving order.");
+        }
+      })
+      .catch(error => {
+        console.error(error);
+        alert("🚨 Something went wrong.");
+      });
+    }
+  </script>
+  
 
 </body>
-
 </html>

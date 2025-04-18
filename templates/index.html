@@ -4,76 +4,93 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mobistock | Inventory Management</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <title>JOMAVIKO CO. LTD | Smart Inventory System</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .feature-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+  </style>
 </head>
 
 <body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
 
   <!-- Navbar -->
-  <header class="bg-blue-900 text-white shadow">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-      <h1 class="text-2xl font-bold">Mobistock</h1>
-      <nav class="space-x-4">
-        <a href="{{ url_for('login') }}" class="text-gray-300 hover:text-teal-400 font-medium">Login</a>
-        <a href="{{ url_for('register') }}" class="text-gray-300 hover:text-teal-400 font-medium">Register</a>
+  <header class="bg-white shadow-md border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <img src="{{ url_for('static', filename='images/joe-logo.PNG') }}" alt="JOMAVIKO Logo" class="h-10 w-auto">
+
+        <h1 class="text-xl font-bold text-blue-900">JOMAVIKO CO. LTD</h1>
+      </div>
+      <nav>
+        <a href="{{ url_for('login') }}"
+          class="text-sm text-blue-600 font-medium hover:text-teal-600 transition">Login</a>
       </nav>
     </div>
   </header>
 
-  <!-- Hero Section -->
-  <section class="bg-gradient-to-r from-blue-800 to-teal-600 py-20 text-white text-center">
-    <div class="max-w-3xl mx-auto px-4">
-      <h2 class="text-4xl font-extrabold mb-4">Streamline Your Inventory Management</h2>
-      <p class="text-lg mb-6">Track stock, manage orders, and monitor product performance—all in one place.</p>
-      <a href="{{ url_for('login') }}" class="inline-block bg-white text-blue-800 font-semibold px-6 py-3 rounded-lg shadow hover:bg-gray-100 transition">
-        Get Started
+
+    <!-- Hero Section -->
+  <section class="relative bg-gradient-to-br from-blue-900 via-teal-800 to-slate-900 py-20 text-white overflow-hidden">
+    <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/white-wall-3.png')]">
+    </div>
+    <div class="relative max-w-4xl mx-auto px-6 text-center z-10 font-sans">
+      <h1 class="text-3xl md:text-4xl font-semibold leading-snug tracking-tight mb-4">
+        Smarter Inventory for Mobile Parts – by JOMAVIKO CO. LTD
+      </h1>      
+      <p class="text-md md:text-lg text-slate-200 mb-8">
+        Fast, intuitive, and reliable inventory management tailored for mobile phone parts dealers.
+      </p>
+      <a href="{{ url_for('login') }}"
+        class="inline-block bg-white text-blue-800 font-medium px-8 py-3 rounded-lg shadow hover:bg-gray-100 transition duration-300">
+        Login to Dashboard
       </a>
     </div>
   </section>
+
 
   <!-- Features Section -->
-  <section class="py-16 bg-gray-100">
-    <div class="max-w-6xl mx-auto px-4">
+  <section class="py-20 bg-white">
+    <div class="max-w-6xl mx-auto px-6">
       <div class="text-center mb-12">
-        <h3 class="text-3xl font-bold text-gray-800">Why Choose Mobistock?</h3>
-        <p class="text-gray-600 mt-2">Empower your business with smart tools to manage products and sales.</p>
+        <h3 class="text-3xl font-bold text-gray-800 mb-3">Key Features</h3>
+        <p class="text-gray-600 text-sm">Tools designed for internal team efficiency</p>
       </div>
-      <div class="grid md:grid-cols-3 gap-8">
-        <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
-          <h4 class="text-xl font-semibold text-teal-600 mb-2">Real-Time Inventory</h4>
-          <p>Stay updated with accurate stock levels and manage your supply efficiently.</p>
+      <div class="grid gap-8 md:grid-cols-3">
+        <div class="feature-card bg-blue-50 p-6 rounded-xl border border-blue-100 text-center">
+          <h4 class="text-xl font-semibold text-blue-700 mb-2">Real-Time Stock</h4>
+          <p class="text-sm text-gray-600">Monitor inventory levels in real time and stay ahead with low stock alerts.</p>
         </div>
-        <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
-          <h4 class="text-xl font-semibold text-teal-600 mb-2">Seamless Orders</h4>
-          <p>Track order history and manage new requests with ease through a user-friendly dashboard.</p>
+        <div class="feature-card bg-teal-50 p-6 rounded-xl border border-teal-100 text-center">
+          <h4 class="text-xl font-semibold text-teal-700 mb-2">Streamlined Dashboard</h4>
+          <p class="text-sm text-gray-600">Get quick insights and manage all parts in one intuitive interface.</p>
         </div>
-        <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
-          <h4 class="text-xl font-semibold text-teal-600 mb-2">User Access Control</h4>
-          <p>Admins and sellers get personalized access levels to manage data securely and efficiently.</p>
+        <div class="feature-card bg-yellow-50 p-6 rounded-xl border border-yellow-100 text-center">
+          <h4 class="text-xl font-semibold text-yellow-700 mb-2">Admin Controls</h4>
+          <p class="text-sm text-gray-600">Add, update or delete parts with access restricted to authorized personnel.</p>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- Call to Action -->
-  <section class="bg-white py-12">
-    <div class="max-w-5xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between">
-      <div class="mb-6 md:mb-0">
-        <h4 class="text-2xl font-bold text-gray-800">Ready to take control of your stock?</h4>
-        <p class="text-gray-600 mt-2">Sign up now to streamline your inventory and orders.</p>
-      </div>
-      <a href="{{ url_for('register') }}" class="bg-teal-600 text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-teal-700 transition">
-        Create Account
-      </a>
     </div>
   </section>
 
   <!-- Footer -->
-  <footer class="bg-gray-800 text-white py-6 mt-auto">
-    <div class="max-w-6xl mx-auto px-4 text-center">
-      <p class="text-sm">&copy; 2025 Mobistock. All rights reserved.</p>
-      <p class="text-sm">Developed by Martin Agoha</p>
+  <footer class="bg-gray-900 text-gray-300 py-4 mt-auto">
+    <div class="max-w-6xl mx-auto px-6 text-center text-sm">
+      <p>&copy; 2025 JOMAVIKO CO. LTD. All rights reserved. Developed by Martin Agoha.</p>
     </div>
   </footer>
 

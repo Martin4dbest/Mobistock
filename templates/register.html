@@ -41,10 +41,16 @@
                 <input type="password" name="password" id="password" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-500 focus:border-blue-500" placeholder="Create a strong password">
             </div>
 
+            <!-- Location Field (Only for Seller role) -->
+            <div class="mb-4" id="location_field" style="display: none;">
+                <label for="location" class="block text-sm font-medium text-gray-700">Location</label>
+                <input type="text" name="location" id="location" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-500 focus:border-blue-500" placeholder="Enter your location">
+            </div>
+
             <!-- Role Selection -->
             <div class="mb-4">
                 <label for="role" class="block text-sm font-medium text-gray-700">Select Role</label>
-                <select name="role" id="role" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-500 focus:border-blue-500">
+                <select name="role" id="role" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:ring-blue-500 focus:border-blue-500" onchange="toggleLocationField()">
                     <option value="seller">Seller</option>
                     <option value="admin">Admin</option>
                 </select>
@@ -60,6 +66,19 @@
         </div>
 
     </div>
+
+    <!-- JavaScript to toggle location input for sellers -->
+    <script>
+        function toggleLocationField() {
+            var role = document.getElementById("role").value;
+            var locationField = document.getElementById("location_field");
+            if (role === "seller") {
+                locationField.style.display = "block";
+            } else {
+                locationField.style.display = "none";
+            }
+        }
+    </script>
 
 </body>
 
