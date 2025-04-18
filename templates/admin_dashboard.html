@@ -97,11 +97,38 @@ class="transition-all duration-300 ease-in-out bg-gray-900 text-white shadow-md 
 
   <!-- Sidebar Nav Links -->
   <nav class="flex-grow space-y-4 text-sm font-medium mt-4" x-show="sidebarOpen">
-    <a href="#" class="block hover:text-green-400">Dashboard</a>
-    <a href="#" class="block hover:text-green-400">Add Products</a>
-    <a href="#" class="block hover:text-green-400">Inventory</a>
-    <a href="#" class="block hover:text-green-400">Orders</a>
+    
+    <a href="{{ url_for('view_orders') }}">View Orders</a>
+
+    
+     <!-- Admins and Sellers Details Section -->
+
+
+  <div class="mb-6">
+    
+    <h2 class="text-sm font-semibold">
+      <a href="{{ url_for('view_users') }}" class="text-white hover:text-green-500">
+          View Registered Admins & Sellers
+      </a>
+    </h2>
+
+    <div class="mt-4 space-y-2">
+        {% for user in users %}
+            <div class="block text-sm text-gray-700 font-medium hover:text-green-400 cursor-pointer">
+                <a href="{{ url_for('view_users', user_id=user.id) }}">
+                    <p>{{ user.username }} ({{ user.role }})</p>
+                    {% if user.location %}
+                        <p>{{ user.location }}</p>
+                    {% endif %}
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+    
     <a href="{{ url_for('index') }}" class="block hover:text-red-400">Logout</a>
+
+  
+
   </nav>
 
   <!-- Footer -->
@@ -177,12 +204,7 @@ class="transition-all duration-300 ease-in-out bg-gray-900 text-white shadow-md 
             <th class="px-6 py-3">Product</th>
             <th class="px-6 py-3">ID Number</th>
             <th class="px-6 py-3">Price ($)</th>
-            <th class="px-6 py-3">Selling Price ($)</th>
             <th class="px-6 py-3">In Stock</th>
-            <th class="px-6 py-3">Order Qty</th>
-            <th class="px-6 py-3">Sold</th>
-            <th class="px-6 py-3">Amount Sold ($)</th>
-            <th class="px-6 py-3">Date & Time</th>
             <th class="px-6 py-3">Actions</th>
           </tr>
         </thead>
@@ -192,17 +214,6 @@ class="transition-all duration-300 ease-in-out bg-gray-900 text-white shadow-md 
             <td class="px-6 py-3 font-medium text-gray-600">{{ product.name }}</td>
             <td class="px-6 py-3 text-gray-500">{{ product.identification_number }}</td>
             <td class="px-6 py-3 text-gray-500">${{ "%.2f"|format(product.price) }}</td>
-
-                        <!-- Selling Price -->
-            <td class="px-6 py-3">
-              <input 
-                type="text" 
-                id="admin-selling-price-{{ product.id }}" 
-                value="{{ product.selling_price if product.selling_price is not none else '' }}" 
-                class="w-24 p-1 border border-gray-300 rounded-md text-sm bg-gray-50" 
-                readonly 
-              />
-            </td>
 
             <!-- In Stock -->
           <td class="px-6 py-3">
@@ -215,33 +226,6 @@ class="transition-all duration-300 ease-in-out bg-gray-900 text-white shadow-md 
               readonly 
             />
           </td>
-
-
-            <!-- Order Qty -->
-            <td class="px-6 py-3">
-              <input 
-                type="text" 
-                id="admin-order-qty-{{ product.id }}" 
-                class="w-20 p-1 border border-gray-300 rounded-md text-sm bg-gray-50" 
-                readonly 
-              />
-            </td>
-
-            <!-- Amount Sold -->
-            <td class="px-6 py-3">
-              <input 
-                type="text" 
-                id="admin-amount-sold-{{ product.id }}" 
-                class="w-24 p-1 border border-gray-300 rounded-md text-sm bg-gray-50" 
-                readonly 
-              />
-            </td>
-
-
-
-
-
-            <td class="px-6 py-3 current-date-time">Loading...</td>
             <td class="px-6 py-3">
               <form action="{{ url_for('delete_product', product_id=product.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this product?');">
                 <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md shadow transition">

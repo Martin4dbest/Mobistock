@@ -15,7 +15,8 @@
   <!-- Header -->
   <header class="bg-gray-800 text-white shadow-md p-4">
     <div class="max-w-7xl mx-auto flex items-center justify-between">
-      <h1 class="text-2xl font-bold tracking-wide">📦 JOMAVIKO CO. LTD Seller</h1>
+      <h1 class="text-2xl font-bold tracking-wide">📦 JOMAVIKO CO. LTD </h1>
+      <h1 class="text-2xl font-bold tracking-wide">Seller Dashboard </h1>
       <a href="{{ url_for('logout') }}" class="text-gray-300 hover:text-teal-400">Logout</a>
     </div>
   </header>
@@ -69,8 +70,8 @@
               <th class="px-6 py-3">ID Number</th>
               <th class="px-6 py-3">Price ($)</th>
               <th class="px-6 py-3">Selling Price ($)</th>
-              <th class="px-6 py-3">In Stock</th>
-              <th class="px-6 py-3">Order Qty</th>
+              <th class="px-6 py-3"> Qty In Stock</th>
+              <th class="px-6 py-3">Quantity Sold</th>
               <th class="px-6 py-3">Amount Sold ($)</th>
               <th class="px-6 py-3">Date & Time</th>
               <th class="px-6 py-3">Action</th>
@@ -95,7 +96,6 @@
                 />
               </td>
 
-              
               <!-- Seller View: In Stock -->
               <td class="px-6 py-3">
                 <input 
@@ -107,9 +107,6 @@
                   readonly 
                 />
               </td>
-
-                
-                
 
               <!-- Input: Order Quantity -->
               <td class="p-2">
@@ -140,16 +137,17 @@
                   readonly
                 />
               </td>
-
+              
               <!-- Action -->
               <td class="p-2">
                 <button
                   @click="sendOrder({{ product.id }})"
-                  class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-1 rounded shadow text-sm"
+                  class="bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded shadow text-sm"
                 >
                   Send
                 </button>
               </td>
+
             </tr>
             {% endfor %}
           </tbody>
@@ -162,57 +160,87 @@
   <footer class="bg-gray-800 text-white py-4 text-center text-sm">
     &copy; 2025 JOMAVIKO CO. LTD. All rights reserved.
   </footer>
+<!-- Script -->
+<script>
+  function calculateAmountSold(productId) {
+    const qtyInput = document.getElementById(`order-qty-${productId}`);
+    const sellingPriceInput = document.getElementById(`selling-price-${productId}`);
+    const amountSoldInput = document.getElementById(`amount-sold-${productId}`);
 
-  <!-- Script -->
-  <script>
-    function calculateAmountSold(productId) {
-      const qtyInput = document.getElementById(`order-qty-${productId}`);
-      const sellingPriceInput = document.getElementById(`selling-price-${productId}`);
-      const amountSoldInput = document.getElementById(`amount-sold-${productId}`);
-  
-      const qty = parseFloat(qtyInput.value) || 0;
-      const sellingPrice = parseFloat(sellingPriceInput.value) || 0;
-      const total = (qty * sellingPrice).toFixed(2);
-  
-      amountSoldInput.value = total;
+    if (!qtyInput || !sellingPriceInput || !amountSoldInput) return;
+
+    const qty = parseFloat(qtyInput.value) || 0;
+    const sellingPrice = parseFloat(sellingPriceInput.value) || 0;
+    const total = (qty * sellingPrice).toFixed(2);
+
+    amountSoldInput.value = total;
+  }
+
+  function sendOrder(productId) {
+    // Collect all inputs safely
+    const qtyInput = document.getElementById(`order-qty-${productId}`);
+    const priceInput = document.getElementById(`selling-price-${productId}`);
+    const amountInput = document.getElementById(`amount-sold-${productId}`); // corrected to match the one used in calculation
+    const inStockInput = document.getElementById(`instock-${productId}`);
+    const nameInput = document.getElementById(`product-name-${productId}`);
+    const idNumberInput = document.getElementById(`identification-number-${productId}`);
+    const dateSoldInput = document.getElementById(`date-sold-${productId}`);
+
+    if (!qtyInput || !priceInput || !amountInput || !inStockInput || !dateSoldInput) {
+      alert("🚫 Missing input fields. Please check your form.");
+      return;
     }
-  
-    function sendOrder(productId) {
-      const qty = document.getElementById(`order-qty-${productId}`).value;
-      const sellingPrice = document.getElementById(`selling-price-${productId}`).value;
-      const amount = document.getElementById(`amount-sold-${productId}`).value;
-      const now = new Date().toLocaleString();
-      document.getElementById(`date-sold-${productId}`).value = now;
-  
-      // Send to backend
-      fetch('/send-order', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          product_id: productId,
-          quantity: qty,
-          selling_price: sellingPrice,
-          amount_sold: amount,
-          date_sold: now
-        })
+
+    const qty = parseFloat(qtyInput.value) || 0;
+    const sellingPrice = parseFloat(priceInput.value) || 0;
+    const amount = parseFloat(amountInput.value) || 0;
+    const inStock = parseInt(inStockInput.value) || 0;
+    const productName = nameInput?.value || '';
+    const identificationNumber = idNumberInput?.value || '';
+
+    // Format the date properly
+    const now = new Date();
+    const formattedDate = now.toISOString(); // e.g., "2025-04-18T23:11:00.123Z"
+    
+    dateSoldInput.value = formattedDate;
+
+    // Send to backend
+    fetch('/send-order', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        product_id: productId,
+        product_name: productName,
+        identification_number: identificationNumber,
+        quantity: qty,
+        selling_price: sellingPrice,
+        amount: amount,
+        in_stock: inStock,
+        date_sold: formattedDate
       })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          alert("✅ Order successfully sent to admin dashboard!");
-        } else {
-          alert("⚠️ Error saving order.");
-        }
-      })
-      .catch(error => {
-        console.error(error);
-        alert("🚨 Something went wrong.");
-      });
-    }
-  </script>
-  
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("Server error");
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log("✅ Response:", data);
+      if (data.success) {
+        alert("✅ Order successfully sent to admin dashboard!");
+      } else {
+        alert(`⚠️ Error saving order: ${data.message || "Unknown error"}`);
+      }
+    })
+    .catch(error => {
+      console.error("🚨 Error:", error);
+      alert("🚨 Something went wrong. Please try again.");
+    });
+  }
+</script>
 
 </body>
 </html>

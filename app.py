@@ -76,7 +76,8 @@ class Order(db.Model):
     status = db.Column(db.String(50), default='pending')
     selling_price = db.Column(db.Float, nullable=True)  # New field
     amount = db.Column(db.Float, nullable=True)         # New field (qty * selling_price)
-    in_stock = db.Column(db.Boolean, default=False) 
+    in_stock = db.Column(db.Integer, nullable=False)
+    date_sold = db.Column(db.DateTime, nullable=False)
 
     product = db.relationship('Product', backref=db.backref('orders', lazy=True))
 
@@ -403,7 +404,6 @@ def place_order(product_id):
     return redirect(url_for('seller_dashboard'))
 
 
-
 @app.route('/register', methods=['GET', 'POST'])
 @login_required
 def register():
@@ -411,11 +411,17 @@ def register():
         flash("Access denied. Only admins can register new users.", "danger")
         return redirect(url_for('login'))
 
+    # List of cities in Ghana (for demonstration; can be updated or fetched dynamically)
+    ghana_cities = [
+        'Accra', 'Kumasi', 'Takoradi', 'Tamale', 'Ashaiman', 'Koforidua', 'Cape Coast',
+        'Sunyani', 'Wa', 'Berekum', 'Ho', 'Nkawkaw', 'Bolgatanga', 'Obuasi', 'Sekondi'
+    ]
+
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         role = request.form['role']
-        location = request.form['location']
+        location = request.form['location'] if 'location' in request.form else None
 
         if role not in ['seller', 'admin']:  # Allow both 'seller' and 'admin' roles
             flash('Invalid role specified.', 'danger')
@@ -430,38 +436,10 @@ def register():
             new_user = User(username=username, password=hashed_password, role=role, location=location)
             db.session.add(new_user)
             db.session.commit()
-            flash(f'{username} registered successfully as Admin!', 'success')
+            flash(f'{username} registered successfully as {role}!', 'success')
             return redirect(url_for('admin_dashboard'))
 
-    return render_template('register.html')
-
-
-'''
-# Route to update items by the admin
-@app.route('/update_item/<int:item_id>', methods=['POST'])
-@login_required
-def update_item(item_id):
-    if current_user.role != 'admin':
-        flash("Access denied. Only admins can update items.", "danger")
-        return redirect(url_for('admin_dashboard'))
-
-    product = Product.query.get(item_id)
-    if request.method == 'POST':
-        name = request.form['name']
-        price = request.form['price']
-        description = request.form['description']
-
-        # Update the product details
-        product.name = name
-        product.price = price
-        product.description = description
-        db.session.commit()
-
-        flash(f"Item {name} updated successfully!", 'success')
-
-    return redirect(url_for('admin_dashboard'))
-
-'''
+    return render_template('register.html', ghana_cities=ghana_cities)
 
 @app.route('/send-order', methods=['POST'])
 def send_order():
@@ -469,20 +447,20 @@ def send_order():
     product_id = data.get('product_id')
     quantity = int(data.get('quantity', 0))
     selling_price = float(data.get('selling_price', 0))
-    amount_sold = float(data.get('amount_sold', 0))
+    amount = float(data.get('amount', 0))
     date_sold = data.get('date_sold')
+    in_stock = int(data.get('in_stock', 0)) 
 
     try:
-        # Example: save to DB (update product order)
-        order = Order.query.filter_by(product_id=product_id).first()
-
-        if not order:
-            order = Order(product_id=product_id)
-
-        order.quantity = quantity
-        order.selling_price = selling_price
-        order.amount_sold = amount_sold
-        order.date_sold = datetime.strptime(date_sold, '%m/%d/%Y, %I:%M:%S %p')
+        # Always create a new order, even if the product already exists
+        order = Order(
+            product_id=product_id,
+            quantity=quantity,
+            selling_price=selling_price,
+            amount=amount,
+            date_sold=datetime.strptime(date_sold, '%Y-%m-%dT%H:%M:%S.%fZ'),
+            in_stock=in_stock
+        )
 
         db.session.add(order)
         db.session.commit()
@@ -491,6 +469,46 @@ def send_order():
     except Exception as e:
         print("Error saving order:", e)
         return jsonify({'success': False, 'error': str(e)}), 500
+
+
+ 
+@app.route('/view_users')
+@login_required
+def view_users():
+    if current_user.role != 'admin':
+        flash("Access denied. Only admins can view the users list.", "danger")
+        return redirect(url_for('index'))
+
+    # Fetch all users with role 'seller' or 'admin', including their usernames
+    users = User.query.filter(User.role.in_(['seller', 'admin'])).all()
+
+    # Pass users to the template
+    return render_template('view_users.html', users=users)
+
+
+@app.route('/delete_user/<int:user_id>', methods=['POST'])
+@login_required
+def delete_user(user_id):
+    if current_user.role != 'admin':
+        flash("Access denied. Only admins can delete users.", "danger")
+        return redirect(url_for('index'))
+
+    # Find the user by ID
+    user = User.query.get_or_404(user_id)
+
+    # Delete the user
+    db.session.delete(user)
+    db.session.commit()
+
+    flash(f"User {user.username} has been deleted.", "success")
+    return redirect(url_for('view_users'))
+
+
+@app.route('/admin/orders')
+def view_orders():
+    orders = Order.query.all()
+    return render_template('admin_orders.html', orders=orders)
+
 
 
 
