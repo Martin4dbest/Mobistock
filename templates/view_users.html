@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registered Users</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100">
     <div class="container mx-auto p-4">
@@ -16,39 +17,52 @@
             </a>
         </div>
         
-        <h1 class="text-3xl font-bold mb-6">Registered Admins & Sellers</h1>
+        <h1 class="text-3xl font-bold mb-6 text-center text-gray-900">Registered Admins & Sellers</h1>
         
         <!-- Display a message if there are no users -->
         {% if not users %}
-            <p class="text-gray-500">No registered users found.</p>
+            <p class="text-gray-500 text-center">No registered users found.</p>
         {% else %}
-            <table class="table-auto w-full border-collapse border border-gray-300">
-                <thead>
-                    <tr>
-                        <th class="px-4 py-2 border bg-gray-200">Username</th>
-                        <th class="px-4 py-2 border bg-gray-200">Role</th>
-                        <th class="px-4 py-2 border bg-gray-200">Location</th>
-                        <th class="px-4 py-2 border bg-gray-200">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in users %}
-                    <tr>
-                        <td class="px-4 py-2 border">{{ user.username }}</td>
-                        <td class="px-4 py-2 border">{{ user.role }}</td>
-                        <td class="px-4 py-2 border">{{ user.location }}</td>
-                        <td class="px-4 py-2 border">
-                            <!-- Delete Button -->
-                            <form action="{{ url_for('delete_user', user_id=user.id) }}" method="POST" style="display:inline;">
-                                <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-                                        onclick="return confirm('Are you sure you want to delete this user?')">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="overflow-x-auto">
+                <table class="table table-bordered w-full table-responsive-md">
+                    <thead class="bg-gray-200">
+                        <tr>
+                            <th class="px-4 py-2 border">Username</th>
+                            <th class="px-4 py-2 border">Role</th>
+                            <th class="px-4 py-2 border">Location</th>
+                            <th class="px-4 py-2 border">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-2 border font-bold {% if user.role == 'Admin' %}text-blue-600{% else %}text-black{% endif %}">
+                                {{ user.username }}
+                            </td>
+                            <td class="px-4 py-2 border">
+                                {% if user.role == 'Admin' %}
+                                    <span class="text-blue-600 font-semibold">{{ user.role }}</span>
+                                {% else %}
+                                    <span class="text-black">{{ user.role }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-2 border">{{ user.location }}</td>
+                            <td class="px-4 py-2 border">
+                                <!-- Delete Button -->
+                                <form action="{{ url_for('delete_user', user_id=user.id) }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 text-xs"
+                                            onclick="return confirm('Are you sure you want to delete this user?')">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         {% endif %}
     </div>
+
+    <!-- Bootstrap JS (Optional, for extra interactivity if needed) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

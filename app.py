@@ -441,6 +441,7 @@ def register():
 
     return render_template('register.html', ghana_cities=ghana_cities)
 
+
 @app.route('/send-order', methods=['POST'])
 def send_order():
     data = request.get_json()
@@ -449,26 +450,46 @@ def send_order():
     selling_price = float(data.get('selling_price', 0))
     amount = float(data.get('amount', 0))
     date_sold = data.get('date_sold')
-    in_stock = int(data.get('in_stock', 0)) 
+    in_stock = int(data.get('in_stock', 0))  # The initial in_stock from frontend input
 
     try:
-        # Always create a new order, even if the product already exists
+        # Retrieve the product from the database
+        product = Product.query.get(product_id)
+
+        if not product:
+            return jsonify({'success': False, 'error': 'Product not found'}), 404
+
+        # Calculate the new remaining stock
+        new_in_stock = product.in_stock - quantity
+
+        # Ensure the stock doesn't go below zero
+        if new_in_stock < 0:
+            return jsonify({'success': False, 'error': 'Not enough stock available'}), 400
+
+        # Update the product's stock in the database
+        product.in_stock = new_in_stock
+        db.session.commit()  # Commit the stock update
+
+        # Create a new order
         order = Order(
             product_id=product_id,
             quantity=quantity,
             selling_price=selling_price,
             amount=amount,
             date_sold=datetime.strptime(date_sold, '%Y-%m-%dT%H:%M:%S.%fZ'),
-            in_stock=in_stock
+            in_stock=new_in_stock  # Include the updated stock in the order (optional)
         )
 
+        # Add the order to the session and commit
         db.session.add(order)
         db.session.commit()
 
-        return jsonify({'success': True}), 200
+        return jsonify({'success': True, 'remaining_stock': new_in_stock}), 200  # Include remaining stock in response
+
     except Exception as e:
         print("Error saving order:", e)
         return jsonify({'success': False, 'error': str(e)}), 500
+
 
 
  
@@ -508,6 +529,18 @@ def delete_user(user_id):
 def view_orders():
     orders = Order.query.all()
     return render_template('admin_orders.html', orders=orders)
+
+@app.route('/delete-all-sales', methods=['POST'])
+def delete_all_sales():
+    try:
+        Order.query.delete()
+        db.session.commit()
+        flash("All sales records have been deleted.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash("Error deleting sales records: " + str(e), "danger")
+    return redirect(url_for('view_orders'))  # ✅ Use your actual route name
+
 
 
 
