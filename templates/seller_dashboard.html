@@ -187,6 +187,7 @@
 
     </section>
   </main>
+  
 
   <!-- Footer -->
   <footer class="bg-gray-800 text-white py-4 text-center text-sm">
@@ -233,6 +234,34 @@
 }
 
 
+function autoAlert(message, duration = 3000, type = "info") {
+  const alertBox = document.getElementById("auto-alert");
+  alertBox.textContent = message;
+
+  // Style based on type
+  if (type === "success") {
+    alertBox.style.backgroundColor = "#d4edda";
+    alertBox.style.color = "#155724";
+    alertBox.style.borderColor = "#c3e6cb";
+  } else if (type === "error") {
+    alertBox.style.backgroundColor = "#f8d7da";
+    alertBox.style.color = "#721c24";
+    alertBox.style.borderColor = "#f5c6cb";
+  } else {
+    alertBox.style.backgroundColor = "#fff3cd";
+    alertBox.style.color = "#856404";
+    alertBox.style.borderColor = "#ffeeba";
+  }
+
+  alertBox.style.display = "block";
+
+  // Auto hide after duration
+  setTimeout(() => {
+    alertBox.style.display = "none";
+  }, duration);
+}
+
+
 
 function sendOrder(productId) {
   const qtyInput = document.getElementById(`order-qty-${productId}`);
@@ -274,19 +303,35 @@ function sendOrder(productId) {
   .then(response => response.json())
   .then(data => {
     if (data.success) {
-      alert("✅ Order successfully sent!");
+      autoAlert("✅ Order successfully sent!", 3000, "success");
+
     } else {
-      alert(`⚠️ Error: ${data.message || "Unknown error"}`);
+      alert(`⚠️ Error: ${data.message || "Out of Stock!! Stock Now!"}`);
     }
   })
   .catch(error => {
-    alert("🚨 Something went wrong. Please try again.");
+    autoAlert("🚨 Something went wrong. Please try again.", 3000, "error");
+
   });
 }
 
 
 </script>
 
+<div id="auto-alert" style="
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 12px 20px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  display: none;
+  z-index: 9999;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  font-family: sans-serif;
+"></div>
 
 </body>
 </html>

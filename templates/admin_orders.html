@@ -17,14 +17,14 @@
 <body class="bg-gray-50">
   <!-- Back to Admin Dashboard Link -->
   <div class="container my-4">
-    <a href="{{ url_for('admin_dashboard') }}" class="text-lg font-semibold text-indigo-600 hover:text-indigo-800 transition-all">
+    <a href="{{ url_for('admin_dashboard') }}" class="text-lg font-semibold text-[#0a1f44] hover:text-blue-900 transition-all">
       <i class="bi bi-arrow-left-circle-fill text-xl mr-2"></i> Back to Admin Dashboard
     </a>
   </div>
 
   <!-- Main Content -->
   <div class="container mx-auto bg-white p-6 rounded-lg shadow-lg mb-8">
-    <h2 class="text-center text-3xl font-bold text-gray-800 mb-6">Products Sold by Sales Representatives</h2>
+    <h2 class="text-center text-3xl font-bold text-[#0a1f44] mb-6">Products Sold by Sales Representatives</h2>
 
     <!-- Search Bar -->
     <div class="mb-4 text-center">
@@ -33,17 +33,17 @@
     
     <!-- Delete All Button -->
     <div class="mb-4 text-end">
-        <form action="{{ url_for('delete_all_sales') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete all sales?');">
+      <form action="{{ url_for('delete_all_sales') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete all sales?');">
         <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-all">
-            <i class="bi bi-trash-fill me-2"></i> Delete All Sales
+          <i class="bi bi-trash-fill me-2"></i> Delete All Sales
         </button>
-        </form>
+      </form>
     </div>
     
     <!-- Orders Table -->
     <div class="overflow-x-auto">
       <table class="table table-striped w-full table-bordered table-hover">
-        <thead class="bg-indigo-700 text-white">
+        <thead style="background-color: #0a1f44;" class="text-white">
           <tr>
             <th class="px-4 py-2 text-center">Product Name</th>
             <th class="px-4 py-2 text-center">Identification Number</th>

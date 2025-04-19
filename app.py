@@ -119,7 +119,6 @@ def authenticate_google_sheets():
     return service
 # Function to fetch data from Googl
 
-
 def get_google_sheet_data():
     service = authenticate_google_sheets()
     sheet = service.spreadsheets()
@@ -167,9 +166,11 @@ def get_google_sheet_data():
     # Now we update or insert into the database
     for product_data in formatted_data:
         selling_price = product_data['price']
+        identification_number = product_data['identification_number']
+        in_stock = product_data['in_stock']
 
         # Check if the product exists in the database using identification_number
-        existing_product = Product.query.filter_by(identification_number=product_data['identification_number']).first()
+        existing_product = Product.query.filter_by(identification_number=identification_number).first()
 
         if existing_product:
             # If product exists, update only the changed fields
@@ -177,24 +178,29 @@ def get_google_sheet_data():
                 existing_product.name = product_data['name']
             if existing_product.price != product_data['price']:
                 existing_product.price = product_data['price']
-            if existing_product.in_stock != product_data['in_stock']:
-                existing_product.in_stock = product_data['in_stock']  # Update 'in_stock' only if changed
+
+            # Update 'in_stock' only if the new value is different and represents a restock or new product
+            if existing_product.in_stock != in_stock:
+                # Only update if in_stock value from the sheet is greater than current stock
+                if in_stock > existing_product.in_stock:
+                    print(f"Restocking {existing_product.name} from {existing_product.in_stock} to {in_stock}")
+                    existing_product.in_stock = in_stock  # Update only if new stock is greater
+                else:
+                    print(f"Skipping update for {existing_product.name} as the sheet has lower stock than current.")
             
             db.session.commit()
         else:
             # If product doesn't exist, create a new product
             new_product = Product(
                 name=product_data['name'],
-                identification_number=product_data['identification_number'],
+                identification_number=identification_number,
                 price=product_data['price'],
-                in_stock=product_data['in_stock'],  # Use the correctly parsed in_stock value
-                
+                in_stock=in_stock  # Use the correctly parsed in_stock value
             )
             db.session.add(new_product)
             db.session.commit()
 
     return formatted_data
-
 
 
 
@@ -228,7 +234,7 @@ def admin_dashboard():
 
                     inventory = Inventory(
                         product_id=product.id,
-                        quantity_in_stock=10 if in_stock else 0  # Default to 10 if in_stock is truthy
+                        quantity_in_stock=10 if in_stock else 0  
                     )
                     db.session.add(inventory)
 
