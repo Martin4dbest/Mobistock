@@ -69,10 +69,12 @@ class Inventory(db.Model):
     quantity_sold = db.Column(db.Integer, nullable=False, default=0)
     product = db.relationship('Product', backref=db.backref('inventory', lazy=True))
     in_stock = db.Column(db.Integer, nullable=False)
+    seller_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+     # You can also define relationships if needed
+    seller = db.relationship('User', backref=db.backref('inventory', lazy=True))
 
 # Define Order model
-
-
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
@@ -209,6 +211,7 @@ def get_google_sheet_data():
 
     return formatted_data
 """
+
 def get_google_sheet_data_by_location(sheet_name):
     service = authenticate_google_sheets()
     sheet = service.spreadsheets()
@@ -266,23 +269,45 @@ def get_google_sheet_data_by_location(sheet_name):
                 identification_number=product_data['identification_number'],
                 price=product_data['price'],
                 selling_price=None,  # Initially not set
-                location=sheet_name  # Assign product to the location
+                location=sheet_name,  # Assign product to the location
+                in_stock=product_data['in_stock']  # Set the in_stock field correctly
             )
-            products_to_add.append(product)
+            db.session.add(product)
+            db.session.commit()  # Commit product first to get product id
 
-            # Prepare inventory for each seller with initial stock
+            # Prepare inventory for each seller based on location
             for seller in sellers:
-                inventory = Inventory(
-                    product_id=product.id,
-                    seller_id=seller.id,
-                    quantity_in_stock=10 if product_data['in_stock'] else 0  # Set initial stock
-                )
-                inventory_to_add.append(inventory)
+                if seller.location == sheet_name:  # Check if seller's location matches the product's location
+                    inventory = Inventory(
+                        product_id=product.id,
+                        seller_id=seller.id,
+                        quantity_in_stock=product_data['in_stock'],  # Set initial stock
+                        in_stock=product_data['in_stock']
+                    )
+                    inventory_to_add.append(inventory)
         else:
             # If the product exists, update its information
             existing.name = product_data['name']
             existing.price = product_data['price']
             existing.in_stock = product_data['in_stock']
+
+            # Ensure the inventory for each seller is updated based on location
+            for seller in sellers:
+                if seller.location == sheet_name:  # Ensure that inventory is updated only for sellers in the same location
+                    existing_inventory = Inventory.query.filter_by(
+                        product_id=existing.id, seller_id=seller.id
+                    ).first()
+                    if existing_inventory:
+                        existing_inventory.quantity_in_stock = existing.in_stock
+                        existing_inventory.in_stock = existing.in_stock
+                    else:
+                        inventory = Inventory(
+                            product_id=existing.id,
+                            seller_id=seller.id,
+                            quantity_in_stock=existing.in_stock,
+                            in_stock=existing.in_stock
+                        )
+                        inventory_to_add.append(inventory)
 
     # Add all products and inventories to the session
     db.session.add_all(products_to_add)
@@ -291,6 +316,7 @@ def get_google_sheet_data_by_location(sheet_name):
 
     print(f"✅ Imported {len(formatted_data)} products for {sheet_name}")
     return formatted_data
+
 
 
 
@@ -520,16 +546,21 @@ def admin_dashboard():
     )
 
 
-
 @app.route('/seller_dashboard', methods=['GET', 'POST'])
 @login_required
 def seller_dashboard():
     if current_user.role != 'seller':
         return redirect(url_for('login'))
 
-    # Fetch all products and inventories
-    products = Product.query.all()
-    inventories = {inv.product_id: inv for inv in Inventory.query.all()}
+    # Fetch only products matching seller's location
+    products = Product.query.filter_by(location=current_user.location).all()
+
+    # Fetch inventories only for current seller and relevant products
+    inventory_records = Inventory.query.filter(
+        Inventory.seller_id == current_user.id,
+        Inventory.product_id.in_([p.id for p in products])
+    ).all()
+    inventories = {inv.product_id: inv for inv in inventory_records}
 
     # Seller details
     seller_details = {
@@ -560,7 +591,7 @@ def seller_dashboard():
                 )
                 db.session.add(order)
 
-                # Update inventory
+                # Update inventory for current seller
                 inventory = inventories.get(product.id)
                 if inventory:
                     inventory.quantity_in_stock = max(0, inventory.quantity_in_stock - quantity)
@@ -576,6 +607,7 @@ def seller_dashboard():
         seller_details=seller_details,
         user_role='seller'
     )
+
 
 
 # Route for user login
@@ -644,7 +676,6 @@ def place_order(product_id):
 
     return redirect(url_for('seller_dashboard'))
 
-
 @app.route('/register', methods=['GET', 'POST'])
 @login_required
 def register():
@@ -664,6 +695,11 @@ def register():
         role = request.form['role']
         location = request.form['location'] if 'location' in request.form else None
 
+        # Ensure the location is a valid city (sheet name) from the list of cities
+        if location not in ghana_cities:
+            flash('Invalid location specified. Please select a valid city.', 'danger')
+            return redirect(url_for('register'))
+
         if role not in ['seller', 'admin']:  # Allow both 'seller' and 'admin' roles
             flash('Invalid role specified.', 'danger')
             return redirect(url_for('register'))
@@ -677,10 +713,11 @@ def register():
             new_user = User(username=username, password=hashed_password, role=role, location=location)
             db.session.add(new_user)
             db.session.commit()
-            flash(f'{username} registered successfully as {role}!', 'success')
+            flash(f'{username} registered successfully as {role} in {location}!', 'success')
             return redirect(url_for('admin_dashboard'))
 
     return render_template('register.html', ghana_cities=ghana_cities)
+
 
 
 @app.route('/send-order', methods=['POST'])
