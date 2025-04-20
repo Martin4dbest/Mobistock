@@ -8,6 +8,7 @@ from googleapiclient.discovery import build
 from google.oauth2.service_account import Credentials
 from dotenv import load_dotenv  # Import the dotenv library
 import os
+import json 
 
 from flask import request, jsonify
 from datetime import datetime
@@ -110,6 +111,7 @@ def load_user(user_id):
 def index():
     return render_template('index.html')
 
+"""
 # Path to your service account JSON file (loaded from .env)
 SERVICE_ACCOUNT_FILE = os.getenv('SERVICE_ACCOUNT_FILE_PATH')
 
@@ -125,7 +127,8 @@ def authenticate_google_sheets():
         SERVICE_ACCOUNT_FILE, scopes=SCOPES)
     service = build('sheets', 'v4', credentials=credentials)
     return service
-# Function to fetch data from Googl
+# Function to fetch data from Google
+"""
 
 """
 def get_google_sheet_data():
@@ -211,6 +214,25 @@ def get_google_sheet_data():
 
     return formatted_data
 """
+
+
+# The ID of your Google Sheet (loaded from .env)
+SPREADSHEET_ID = os.getenv('GOOGLE_SHEET_ID')
+
+# Google Sheets API scope
+SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+
+# Authenticate using the service account JSON from the environment
+def authenticate_google_sheets():
+    try:
+        service_account_info = json.loads(os.getenv("SERVICE_ACCOUNT_JSON"))
+        credentials = Credentials.from_service_account_info(service_account_info, scopes=SCOPES)
+        service = build('sheets', 'v4', credentials=credentials)
+        return service
+    except Exception as e:
+        print(f"❌ Error during Google Sheets authentication: {e}")
+        return None
+    
 
 def get_google_sheet_data_by_location(sheet_name):
     service = authenticate_google_sheets()
