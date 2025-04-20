@@ -271,21 +271,44 @@ function sendOrder(productId) {
   const inStockInput = document.getElementById(`instock-${productId}`);
   const dateSoldInput = document.getElementById(`date-sold-${productId}`);
 
+  // Check if all fields are filled
   if (!qtyInput || !priceInput || !amountInput || !inStockInput || !dateSoldInput) {
-    alert("🚫 Missing input fields. Please check your form.");
+    autoAlert("🚫 Some required fields are missing. Please check your form.", 3000, "error");
     return;
   }
 
-  const qty = parseFloat(qtyInput.value) || 0;
-  const sellingPrice = parseFloat(priceInput.value) || 0;
-  const amount = parseFloat(amountInput.value) || 0;
-  const inStock = parseInt(inStockInput.value) || 0;
+  // Validate if any field is empty or invalid
+  const qty = parseFloat(qtyInput.value);
+  const sellingPrice = parseFloat(priceInput.value);
+  const amount = parseFloat(amountInput.value);
+  const inStock = parseInt(inStockInput.value);
 
+  if (isNaN(qty) || qty <= 0) {
+    autoAlert("🚫 Please enter a valid quantity.", 3000, "error");
+    return;
+  }
+
+  if (isNaN(sellingPrice) || sellingPrice <= 0) {
+    autoAlert("🚫 Please enter a valid selling price.", 3000, "error");
+    return;
+  }
+
+  if (isNaN(amount) || amount <= 0) {
+    autoAlert("🚫 Please enter a valid amount sold.", 3000, "error");
+    return;
+  }
+
+  if (isNaN(inStock) || inStock < 0) {
+    autoAlert("🚫 Invalid stock value.", 3000, "error");
+    return;
+  }
+
+  // Format the date if valid
   const now = new Date();
   const formattedDate = now.toISOString();
-  
   dateSoldInput.value = formattedDate;
 
+  // If all validations pass, send the order
   fetch('/send-order', {
     method: 'POST',
     headers: {
@@ -320,7 +343,6 @@ function sendOrder(productId) {
     autoAlert("🚨 Something went wrong. Please try again.", 3000, "error");
   });
 }
-
 
 
 </script>
