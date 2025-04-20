@@ -399,33 +399,26 @@ def get_all_products_for_admin():
 
 
 
+
 @app.route('/delete_product/<int:product_id>', methods=['POST'])
 def delete_product(product_id):
     product = Product.query.get(product_id)
     if product:
-        try:
-            # Delete associated inventory
-            inventory = Inventory.query.filter_by(product_id=product.id).first()
-            if inventory:
-                db.session.delete(inventory)
-            
-            # Delete associated orders
-            orders = Order.query.filter_by(product_id=product.id).all()
-            for order in orders:
-                db.session.delete(order)
+        # Delete associated inventory
+        inventory = Inventory.query.filter_by(product_id=product.id).first()
+        if inventory:
+            db.session.delete(inventory)
 
-            # Finally, delete the product itself
-            db.session.delete(product)
+        # Delete associated orders
+        orders = Order.query.filter_by(product_id=product.id).all()
+        for order in orders:
+            db.session.delete(order)
 
-            # Commit the changes
-            db.session.commit()
+        # Finally, delete the product
+        db.session.delete(product)
+        db.session.commit()
 
-            flash('Product successfully deleted!', 'success')
-
-        except Exception as e:
-            db.session.rollback()  # In case of an error, rollback any changes made in the transaction
-            flash(f'Error deleting product: {str(e)}', 'danger')
-        
+        flash('Product successfully deleted!', 'success')
     else:
         flash('Product not found!', 'danger')
 
