@@ -37,24 +37,28 @@
     </h2>
 
     <!-- Form -->
-    <form method="post" class="text-center">
+    <form method="post" class="text-center" id="locationForm">
       <label for="location" class="text-xl block mb-4 text-gray-800">Choose a location:</label>
 
       <select name="location" id="location"
         class="form-select w-full md:w-1/2 mx-auto p-3 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-400 mb-6"
-        required>
+        required onchange="submitForm()">
         <option value="">-- Select Location --</option>
         {% for location in locations %}
         <option value="{{ location }}">{{ location }}</option>
         {% endfor %}
       </select>
-
-      <button type="submit"
-        class="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition duration-300 shadow-md">
-        View Orders
-      </button>
     </form>
   </div>
+
+  <script>
+    function submitForm() {
+      const location = document.getElementById("location").value;
+      if (location) {
+        document.getElementById("locationForm").submit();
+      }
+    }
+  </script>
 
 </body>
 
