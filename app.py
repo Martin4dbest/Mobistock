@@ -805,8 +805,45 @@ def delete_user(user_id):
 
 @app.route('/admin/orders')
 def view_orders():
-    orders = Order.query.all()
-    return render_template('admin_orders.html', orders=orders)
+    # Get the selected location from the query string
+    selected_location = request.args.get('location')
+
+    # If no location is selected, redirect to the location selection page
+    if not selected_location:
+        return redirect(url_for('select_order_location'))
+
+    # Fetch orders for the selected location
+    orders = (
+        Order.query
+        .join(Product, Product.id == Order.product_id)
+        .filter(Product.location == selected_location)
+        .all()
+    )
+
+    # Render the orders page with the selected location
+    return render_template('admin_orders.html', orders=orders, selected_location=selected_location)
+
+@app.route('/admin/select_order_location', methods=['GET', 'POST'])
+def select_order_location():
+    # Static list of cities in Ghana
+    ghana_cities = [
+        'Accra', 'Kumasi', 'Sekondi', 'Tamale', 'Takoradi', 'Cape Coast', 
+        'Sunyani', 'Bolgatanga', 'Wa', 'Ho', 'Berekum', 'Nsawam', 'New Edubiase',
+        'Akim Oda', 'Landslide', 'Asamankese', 'Mampong', 'Sefwi Wiawso'
+    ]
+    
+    locations = ghana_cities
+
+    if request.method == 'POST':
+        # Get the selected location from the form
+        selected_location = request.form.get('location')
+        # Redirect to the orders page with the selected location as a query parameter
+        return redirect(url_for('view_orders', location=selected_location))
+
+    # Render the location selection page with the list of locations
+    return render_template('select_order_location.html', locations=locations)
+
+
 
 @app.route('/delete-all-sales', methods=['POST'])
 def delete_all_sales():
