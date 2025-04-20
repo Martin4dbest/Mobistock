@@ -109,6 +109,37 @@
       }
     }
   </script>
+
+<script>
+  function filterTable() {
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const rows = document.getElementById('orderTableBody').getElementsByTagName('tr');
+
+    for (let i = 0; i < rows.length; i++) {
+      const cells = rows[i].getElementsByTagName('td');
+      let rowContainsSearchText = false;
+
+      for (let j = 0; j < cells.length; j++) {
+        if (cells[j].textContent.toLowerCase().includes(searchInput)) {
+          rowContainsSearchText = true;
+          break;
+        }
+      }
+
+      if (rowContainsSearchText) {
+        rows[i].style.display = '';
+      } else {
+        rows[i].style.display = 'none';
+      }
+    }
+  }
+
+  // 🔄 Auto-refresh the page every 5 seconds
+  setInterval(() => {
+    location.reload();
+  }, 5000);
+</script>
+
 </body>
 
 </html>

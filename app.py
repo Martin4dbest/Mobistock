@@ -53,9 +53,13 @@ class Product(db.Model):
     price = db.Column(db.Float, nullable=False)  # Could be used for display or reference
     identification_number = db.Column(db.String(100), unique=True, nullable=False)
     in_stock = db.Column(db.Integer, nullable=False)
-
-
+    seller_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    seller = db.relationship('User', backref='products')
     selling_price = db.Column(db.Float, nullable=True)
+    location = db.Column(db.String(100), nullable=True)  # change to True
+
+
+
 
 # Define Inventory model
 class Inventory(db.Model):
@@ -94,7 +98,9 @@ class User(UserMixin, db.Model):
 # Load user for Flask-Login
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    #eturn User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
+
 
 
 
@@ -119,6 +125,7 @@ def authenticate_google_sheets():
     return service
 # Function to fetch data from Googl
 
+"""
 def get_google_sheet_data():
     service = authenticate_google_sheets()
     sheet = service.spreadsheets()
@@ -201,9 +208,176 @@ def get_google_sheet_data():
             db.session.commit()
 
     return formatted_data
+"""
+def get_google_sheet_data_by_location(sheet_name):
+    service = authenticate_google_sheets()
+    sheet = service.spreadsheets()
+
+    # Get data from the selected sheet
+    result = sheet.values().get(
+        spreadsheetId=SPREADSHEET_ID,
+        range=f"{sheet_name}!A2:D"  # Name | ID | Price | In Stock
+    ).execute()
+
+    values = result.get('values', [])
+    if not values:
+        print(f"No data found in sheet {sheet_name}")
+        return []
+
+    # Get all sellers for the selected location (sheet_name)
+    sellers = User.query.filter(User.location.ilike(sheet_name), User.role == 'seller').all()
+    if not sellers:
+        print(f"No sellers found for location: {sheet_name}")
+        return []
+
+    formatted_data = []
+
+    for row in values:
+        # Safely access each value in the row
+        name = row[0] if len(row) > 0 else ''
+        identification_number = row[1] if len(row) > 1 else ''
+        price = float(row[2]) if len(row) > 2 and row[2] else 0.0
+        in_stock = 0
+        if len(row) > 3 and row[3]:
+            try:
+                in_stock = int(row[3])
+            except ValueError:
+                in_stock = 0
+
+        formatted_data.append({
+            'name': name,
+            'identification_number': identification_number,
+            'price': price,
+            'in_stock': in_stock,
+        })
+
+    # Create a list of products and sellers before updating the database
+    products_to_add = []
+    inventory_to_add = []
+
+    for product_data in formatted_data:
+        # Check if product already exists in the system
+        existing = Product.query.filter_by(identification_number=product_data['identification_number']).first()
+
+        if not existing:
+            # Create new product if it doesn't exist
+            product = Product(
+                name=product_data['name'],
+                identification_number=product_data['identification_number'],
+                price=product_data['price'],
+                selling_price=None,  # Initially not set
+                location=sheet_name  # Assign product to the location
+            )
+            products_to_add.append(product)
+
+            # Prepare inventory for each seller with initial stock
+            for seller in sellers:
+                inventory = Inventory(
+                    product_id=product.id,
+                    seller_id=seller.id,
+                    quantity_in_stock=10 if product_data['in_stock'] else 0  # Set initial stock
+                )
+                inventory_to_add.append(inventory)
+        else:
+            # If the product exists, update its information
+            existing.name = product_data['name']
+            existing.price = product_data['price']
+            existing.in_stock = product_data['in_stock']
+
+    # Add all products and inventories to the session
+    db.session.add_all(products_to_add)
+    db.session.add_all(inventory_to_add)
+    db.session.commit()
+
+    print(f"✅ Imported {len(formatted_data)} products for {sheet_name}")
+    return formatted_data
 
 
 
+@app.route('/import-products', methods=['POST'])
+def import_all_products():
+    # Get the location from the form, or default to "Accra" if not specified
+    location = request.form.get('location', 'Accra')  # Default to 'Accra' if not provided
+
+    try:
+        # Get the sheet data for the given location
+        sheet_data = get_google_sheet_data_by_location(location)
+        
+        if not sheet_data:
+            flash(f"No data found for location {location}. Please check the sheet name.", "danger")
+            return redirect(url_for('admin_dashboard'))
+
+        # Process the sheet data and update the admin dashboard
+        flash(f"Successfully imported products for {location}!", "success")
+
+    except Exception as e:
+        # Handle any unexpected errors
+        flash(f"An error occurred while importing data: {str(e)}", "danger")
+
+    return redirect(url_for('admin_dashboard'))
+
+
+
+@app.route('/products/<location>')
+def get_products_by_seller_location(location):
+    seller = User.query.filter_by(location=location.lower(), role='seller').first()
+    if not seller:
+        return jsonify([])
+
+    products = Product.query.filter_by(seller_id=seller.id).all()
+    return jsonify([
+        {
+            "name": p.name,
+            "price": p.price,
+            "stock": p.in_stock,
+            "id": p.identification_number
+        } for p in products
+    ])
+@app.route('/admin/products')
+def get_all_products_for_admin():
+    # Optional: Add admin-only check here if you have authentication
+    products = Product.query.all()
+    
+    return jsonify([
+        {
+            "name": p.name,
+            "price": p.price,
+            "stock": p.in_stock,
+            "id": p.identification_number,
+            "seller": p.seller.username if p.seller else "Unknown",
+            "location": p.seller.location if p.seller else "Unknown"
+        } for p in products
+    ])
+
+
+
+
+@app.route('/delete_product/<int:product_id>', methods=['POST'])
+def delete_product(product_id):
+    product = Product.query.get(product_id)
+    if product:
+        # Delete associated inventory
+        inventory = Inventory.query.filter_by(product_id=product.id).first()
+        if inventory:
+            db.session.delete(inventory)
+
+        # Delete associated orders
+        orders = Order.query.filter_by(product_id=product.id).all()
+        for order in orders:
+            db.session.delete(order)
+
+        # Finally, delete the product
+        db.session.delete(product)
+        db.session.commit()
+
+        flash('Product successfully deleted!', 'success')
+    else:
+        flash('Product not found!', 'danger')
+
+    return redirect(url_for('admin_dashboard'))  # Redirect to the correct dashboard after deletion
+
+
+"""
 @app.route('/admin', methods=['GET', 'POST'])
 @login_required
 def admin_dashboard():
@@ -212,7 +386,8 @@ def admin_dashboard():
 
     # Handle import from Google Sheets
     if request.method == 'POST' and 'import_button' in request.form:
-        sheet_data = get_google_sheet_data()  # Ensure this returns a list of dicts
+        sheet_data =  get_google_sheet_data_by_location() # Ensure this returns a list of dicts
+       
 
         for row in sheet_data:
             name = row.get('name', '').strip()
@@ -259,31 +434,91 @@ def admin_dashboard():
         search_query=search_query,
     )
 
+"""
+@app.route('/admin', methods=['GET', 'POST'])
+@login_required
+def admin_dashboard():
+    if current_user.role != 'admin':
+        return redirect(url_for('login'))
 
+    # Handle import from Google Sheets
+    if request.method == 'POST' and 'import_button' in request.form:
+        # Get the location from the form
+        location = request.form.get('location')  # The location is now explicitly selected
+        
+        if not location:
+            flash("Please select a location before importing data.", "danger")
+            return redirect(url_for('admin_dashboard'))
 
-@app.route('/delete_product/<int:product_id>', methods=['POST'])
-def delete_product(product_id):
-    product = Product.query.get(product_id)
-    if product:
-        # Delete associated inventory
-        inventory = Inventory.query.filter_by(product_id=product.id).first()
-        if inventory:
-            db.session.delete(inventory)
+        try:
+            # Get the sheet data for the given location
+            sheet_data = get_google_sheet_data_by_location(location)
+            
+            if not sheet_data:
+                flash(f"No data found for location {location}. Please check the sheet name.", "danger")
+                return redirect(url_for('admin_dashboard'))
 
-        # Delete associated orders
-        orders = Order.query.filter_by(product_id=product.id).all()
-        for order in orders:
-            db.session.delete(order)
+            # Process the sheet data and assign products to sellers
+            for row in sheet_data:
+                name = row.get('name', '').strip()
+                identification_number = row.get('identification_number', '').strip()
+                price = float(row.get('price', 0.0))  # Base price only
+                in_stock = row.get('in_stock', 0)
 
-        # Finally, delete the product
-        db.session.delete(product)
-        db.session.commit()
+                if name and identification_number:
+                    # Check if the product already exists in the system
+                    existing = Product.query.filter_by(identification_number=identification_number).first()
+                    if not existing:
+                        # Create the product
+                        product = Product(
+                            name=name,
+                            identification_number=identification_number,
+                            price=price,
+                            selling_price=None,  # Initially not set
+                            location=location  # Assign product to the location
+                        )
+                        db.session.add(product)
+                        db.session.commit()  # Commit to get product.id
 
-        flash('Product successfully deleted!', 'success')
+                        # Get all sellers for this location and assign the product to them
+                        sellers = User.query.filter(User.location.ilike(location), User.role == 'seller').all()
+                        if sellers:
+                            for seller in sellers:
+                                # Create inventory for each seller with initial stock
+                                inventory = Inventory(
+                                    product_id=product.id,
+                                    seller_id=seller.id,
+                                    quantity_in_stock=10 if in_stock else 0  # Set initial stock
+                                )
+                                db.session.add(inventory)
+
+            db.session.commit()
+            flash(f"Successfully imported data for location {location}!", "success")
+
+        except Exception as e:
+            # Handle any unexpected errors
+            flash(f"An error occurred while importing data: {str(e)}", "danger")
+
+    # Search logic (products search functionality)
+    search_query = request.args.get('search', '').strip()
+    if search_query:
+        products = Product.query.filter(Product.name.ilike(f"%{search_query}%")).all()
     else:
-        flash('Product not found!', 'danger')
+        products = Product.query.all()
 
-    return redirect(url_for('admin_dashboard'))  # Redirect to the correct dashboard after deletion
+    # Get all inventories and orders for the admin view
+    inventories = {inv.product_id: inv for inv in Inventory.query.all()}
+    orders = Order.query.all()
+
+    return render_template(
+        'admin_dashboard.html',
+        products=products,
+        inventories=inventories,
+        orders=orders,
+        user_role='admin',
+        search_query=search_query,
+    )
+
 
 
 @app.route('/seller_dashboard', methods=['GET', 'POST'])

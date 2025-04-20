@@ -180,7 +180,7 @@
         {% else %}
         <tr>
           <td colspan="6" class="text-center py-4 text-red-500">
-            No products found for "{{ search_query }}"
+            No products found
           </td>
         </tr>
         {% endif %}
@@ -195,6 +195,7 @@
   </footer>
   
 <script>
+
   // Filter products based on the search input
   document.getElementById("search-input").addEventListener("input", function() {
     const searchQuery = this.value.toLowerCase();
@@ -278,14 +279,13 @@ function sendOrder(productId) {
   const qty = parseFloat(qtyInput.value) || 0;
   const sellingPrice = parseFloat(priceInput.value) || 0;
   const amount = parseFloat(amountInput.value) || 0;
-  const inStock = parseInt(inStockInput.value) || 0;  // Capture the current in-stock value
+  const inStock = parseInt(inStockInput.value) || 0;
 
   const now = new Date();
   const formattedDate = now.toISOString();
   
   dateSoldInput.value = formattedDate;
 
-  // Send the updated 'in_stock' value along with other order data
   fetch('/send-order', {
     method: 'POST',
     headers: {
@@ -296,7 +296,7 @@ function sendOrder(productId) {
       quantity: qty,
       selling_price: sellingPrice,
       amount: amount,
-      in_stock: inStock,  // Include the current stock value
+      in_stock: inStock,
       date_sold: formattedDate
     })
   })
@@ -304,16 +304,23 @@ function sendOrder(productId) {
   .then(data => {
     if (data.success) {
       autoAlert("✅ Order successfully sent!", 3000, "success");
+      console.log("✅ Order sent successfully. Reloading in 10 seconds...");
 
+      // Refresh page after 10 seconds
+      setTimeout(() => {
+        console.log("⏰ Reloading now...");
+        location.reload();
+      }, 10000);
     } else {
       alert(`⚠️ Error: ${data.message || "Out of Stock!! Stock Now!"}`);
     }
   })
   .catch(error => {
+    console.error("🚨 Fetch error:", error);
     autoAlert("🚨 Something went wrong. Please try again.", 3000, "error");
-
   });
 }
+
 
 
 </script>
