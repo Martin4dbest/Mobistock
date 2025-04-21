@@ -10,8 +10,9 @@
     body {
       font-family: 'Inter', sans-serif;
       display: flex;
-      flex-direction: column;
-      height: 100%;
+      flex-direction: row; /* Make the body use a row layout */
+      min-height: 100vh; /* Ensure the body takes up full viewport height */
+      background-color: #f9fafb; /* Add a background color */
     }
 
     html, body {
@@ -19,11 +20,14 @@
     }
 
     .main-content {
-      flex-grow: 1;
+      flex-grow: 1; /* Allow the main content to grow */
+      padding: 1.5rem; /* Add padding to the main content */
     }
 
     .sidebar {
       height: 100%;
+      position: sticky;
+      top: 0; /* Sticky sidebar */
     }
 
     .flash-message {
@@ -37,11 +41,12 @@
 
     @media (max-width: 768px) {
       .sidebar {
-        width: 100%;
         position: relative;
+        width: 100%;
       }
+
       .main-content {
-        margin-left: 0;
+        margin-left: 0; /* Remove the left margin on smaller screens */
       }
     }
   </style>
@@ -93,218 +98,142 @@
   </script>
 </head>
 
-
-</head>
-
- <!-- ✅ Alpine.js Script (place this here) -->
- <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-
-
-<body class="bg-gray-50 min-h-screen text-gray-800 flex flex-col md:flex-row">
-  
+<body class="min-h-screen flex flex-row bg-gray-50 text-gray-800">
 
   <!-- Sidebar -->
-  <aside
-  x-data="{ sidebarOpen: true }"
-  class="fixed top-0 left-0 h-screen transition-all duration-300 ease-in-out bg-gray-900 text-white shadow-md flex flex-col z-50"
-  :class="sidebarOpen ? 'w-full md:w-64 p-4' : 'w-16 p-2'"
->
-  <!-- Collapse Toggle Button -->
-  <button
-    @click="sidebarOpen = !sidebarOpen"
-    class="bg-gray-800 text-white p-2 rounded mb-4"
-  >
-    <!-- Icon (hamburger style) -->
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-         viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M4 6h16M4 12h16M4 18h16" />
-    </svg>
-  </button>
-
-</aside>
-
-
-
-<!-- Toggle Button -->
-<div class="flex justify-end mb-4">
-  <button
-    @click="sidebarOpen = !sidebarOpen"
-    class="focus:outline-none text-white hover:text-green-400"
-    title="Toggle Sidebar"
-  >
-    <!-- Hamburger Icon -->
-    <svg x-show="!sidebarOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-      viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-        d="M4 6h16M4 12h16M4 18h16" />
-    </svg>
-
-    <!-- Arrow Icon -->
-    <svg x-show="sidebarOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-      viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-        d="M6 18L18 12L6 6V18Z" />
-    </svg>
-  </button>
-</div>
-
-  <!-- Sidebar Header -->
-  <div x-show="sidebarOpen" class="p-4 text-xl font-bold border-b border-gray-700 text-white">
-    JOMAVIKO CO. LTD Admin
-  </div>
-
-  <!-- Sidebar Nav Links -->
-  <nav class="flex-grow mt-4 space-y-4 text-sm font-medium text-white" x-show="sidebarOpen">
-    
-    <!-- Orders from Shop Locations -->
-    <a href="{{ url_for('select_order_location') }}"
-      class="block hover:text-green-400 transition-colors duration-300">
-      Orders from Shop Locations
-    </a>
-
-    <!-- Register Seller / Admin Link -->
-    <a href="{{ url_for('register') }}"
-      class="block hover:text-green-400 transition-colors duration-300">
-      Register Seller / Admin
-    </a>
-
-    <!-- Registered Admins & Sales Reps -->
-    <div class="mt-6">
-      <h2 class="text-sm font-semibold">
-        <a href="{{ url_for('view_users') }}" class="hover:text-green-400">
-          Registered Admins & Sales Reps
-        </a>
-      </h2>
-
-      <div class="mt-4 space-y-2">
-        {% for user in users %}
-          <a href="{{ url_for('view_users', user_id=user.id) }}"
-            class="block text-sm font-medium text-white hover:text-green-400 transition-colors duration-300">
-            <p>{{ user.username }} ({{ user.role }})</p>
-            {% if user.location %}
-              <p class="text-xs text-gray-400">{{ user.location }}</p>
-            {% endif %}
-          </a>
-        {% endfor %}
-      </div>
+  <aside class="fixed top-0 left-0 h-screen w-64 p-4 bg-gray-900 text-white shadow-md z-50 flex flex-col">
+    <div class="flex justify-end mb-4">
+      <button @click="sidebarOpen = !sidebarOpen" class="bg-gray-800 p-2 rounded text-white hover:text-green-400" title="Toggle Sidebar">
+        <svg x-show="!sidebarOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        <svg x-show="sidebarOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 12L6 6V18Z" />
+        </svg>
+      </button>
     </div>
 
-    <!-- Logout -->
-    <a href="{{ url_for('index') }}"
-      class="block mt-6 hover:text-red-400 transition-colors duration-300">
-      Logout
-    </a>
-  </nav>
+    <div class="p-4 text-xl font-bold border-b border-gray-700">
+      JOMAVIKO CO. LTD Admin
+    </div>
 
-  </nav>
+    <nav class="flex-grow mt-4 space-y-4 text-sm font-medium">
+      <a href="{{ url_for('select_order_location') }}" class="block hover:text-green-400 transition-colors duration-300">Orders from Shop Locations</a>
+      <a href="{{ url_for('register') }}" class="block hover:text-green-400 transition-colors duration-300">Register Seller / Admin</a>
+      
+      <div class="mt-6">
+        <h2 class="text-sm font-semibold">
+          <a href="{{ url_for('view_users') }}" class="hover:text-green-400">Registered Admins & Sales Reps</a>
+        </h2>
 
-  <!-- Footer -->
-  <div x-show="sidebarOpen" class="p-4 text-xs text-gray-400 border-t border-gray-700">
-    &copy; 2025 JOMAVIKO CO. LTD
-  </div>
+        <div class="mt-4 space-y-2">
+          {% for user in users %}
+            <a href="{{ url_for('view_users', user_id=user.id) }}" class="block text-sm font-medium hover:text-green-400 transition-colors duration-300">
+              <p>{{ user.username }} ({{ user.role }})</p>
+              {% if user.location %}
+                <p class="text-xs text-gray-400">{{ user.location }}</p>
+              {% endif %}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <a href="{{ url_for('index') }}" class="block mt-6 hover:text-red-400 transition-colors duration-300">Logout</a>
+    </nav>
+
+    <div class="p-4 text-xs text-gray-400 border-t border-gray-700">
+      &copy; 2025 JOMAVIKO CO. LTD
+    </div>
   </aside>
 
   <!-- Main Content -->
-  <main class="flex-grow p-6 bg-gray-100 main-content">
+  <main class="flex-grow p-6 bg-gray-100">
 
     <!-- Flash Message -->
     {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    <div class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
-      {% for category, message in messages %}
-      <div class="flash-message px-6 py-3 rounded-md shadow-lg text-white text-sm font-semibold
-        {% if category == 'success' %}bg-green-600{% elif category == 'danger' %}bg-red-600{% else %}bg-gray-600{% endif %}">
-        {{ message }}
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
+      {% if messages %}
+        <div class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+          {% for category, message in messages %}
+            <div class="flash-message px-6 py-3 rounded-md shadow-lg text-white text-sm font-semibold
+              {% if category == 'success' %}bg-green-600{% elif category == 'danger' %}bg-red-600{% else %}bg-gray-600{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
     {% endwith %}
-  
 
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
-  
       <h2 class="text-2xl font-extrabold text-indigo-900" style="font-family: 'Arial', sans-serif;">
         Admin Central Management Dashboard - JOMAVIKO CO. LTD
-    </h2>
-  
+      </h2>
     </div>
 
+    <!-- Location and Import Form -->
     <form method="POST" class="mb-4">
-      
-      <label for="location" style="color: #6B21A8; font-size: 1.125rem; font-weight: 600; margin-right: 8px;">Select Shop Location:</label><span style="color: #6B21A8;">➡</span>
-
-      <select name="location" id="location" required>
-          <option value="Accra">Accra</option>
-          <option value="Kumasi">Kumasi</option>
-          <option value="Tamale">Tamale</option>
-          <!-- Add other locations here -->
+      <label for="location" class="text-indigo-600 font-semibold text-lg">Select Shop Location:</label><span class="text-indigo-600">➡</span>
+      <select name="location" id="location" required class="border border-gray-300 rounded px-4 py-2">
+        <option value="Accra">Accra</option>
+        <option value="Kumasi">Kumasi</option>
+        <option value="Tamale">Tamale</option>
+        <!-- Add other locations here -->
       </select>
-
-      <button type="submit" name="import_button" value="1" class="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-md shadow">
+      <button type="submit" name="import_button" value="1" class="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-md shadow ml-4">
         Import Product Details Based on Location
-    </button>
-    
-        
+      </button>
     </form>
 
-
     <!-- Search Field -->
-  <div class="mb-4">
-    <input
-      type="text"
-      id="search-input"
-      class="w-1/3 p-2 border border-gray-300 rounded mx-auto block"
-      placeholder="Search product by name..."
-      oninput="filterProducts()"
-    />
-  </div>
+    <div class="mb-4">
+      <input
+        type="text"
+        id="search-input"
+        class="w-1/3 p-2 border border-gray-300 rounded mx-auto block"
+        placeholder="Search product by name..."
+        oninput="filterProducts()"
+      />
+    </div>
 
+    <!-- Product Table -->
     {% if products|length > 0 %}
-      <!-- ✅ Your existing table with product rows goes here -->
+      <div class="bg-white shadow-md rounded-lg overflow-x-auto border border-gray-200 mb-8">
+        <table class="min-w-full text-sm text-left text-gray-700" id="product-table">
+          <thead class="bg-gray-800 text-white">
+            <tr>
+              <th class="px-6 py-3">Product</th>
+              <th class="px-6 py-3">ID Number</th>
+              <th class="px-6 py-3">Location</th>
+              <th class="px-6 py-3">Retail Price ($)</th>
+              <th class="px-6 py-3 border-b">Quantity In Stock</th>
+              <th class="px-6 py-3">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for product in products %}
+              <tr class="border-b hover:bg-gray-200 transition product-row">
+                <td class="px-6 py-3 font-medium text-gray-600">{{ product.name }}</td>
+                <td class="px-6 py-3 text-gray-500">{{ product.identification_number }}</td>
+                <td class="px-6 py-3">{{ product.location }}</td>
+                <td class="px-6 py-3 text-gray-500">${{ "%.2f"|format(product.price) }}</td>
+                <td class="px-6 py-3 border-b">{{ product.in_stock }}</td>
+                <td class="px-6 py-3">
+                  <form action="{{ url_for('delete_product', product_id=product.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this product?');">
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md shadow transition">
+                      Delete
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     {% else %}
-      <tr>
-        <td colspan="6" class="text-center py-4 text-red-500">
-          No products found
-        </td>
-      </tr>
+      <div class="text-center text-red-500">
+        No products found
+      </div>
     {% endif %}
-
-      <!-- Product Table -->
-  <div class="bg-white shadow-md rounded-lg overflow-x-auto border border-gray-200 mb-8">
-    <table class="min-w-full text-sm text-left text-gray-700" id="product-table">
-      <thead class="bg-gray-800 text-white">
-        <tr>
-          <th class="px-6 py-3">Product</th>
-          <th class="px-6 py-3">ID Number</th>
-          <th class="px-6 py-3">Location</th>
-          <th class="px-6 py-3">Retail Price ($)</th>
-          <th class="px-6 py-3 border-b">Quantity In Stock</th>
-          <th class="px-6 py-3">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for product in products %}
-        <tr class="border-b hover:bg-gray-200 transition product-row">
-          <td class="px-6 py-3 font-medium text-gray-600">{{ product.name }}</td>
-          <td class="px-6 py-3 text-gray-500">{{ product.identification_number }}</td>
-          <td class="px-6 py-3">{{ product.location }}</td>
-          <td class="px-6 py-3 text-gray-500">${{ "%.2f"|format(product.price) }}</td>
-          <td class="px-6 py-3 border-b">{{ product.in_stock }}</td>
-          <td class="px-6 py-3">
-            <form action="{{ url_for('delete_product', product_id=product.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this product?');">
-              <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md shadow transition">
-                Delete
-              </button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
 
   </main>
 </body>
