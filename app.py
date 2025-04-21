@@ -399,30 +399,33 @@ def get_all_products_for_admin():
 
 
 
-
 @app.route('/delete_product/<int:product_id>', methods=['POST'])
 def delete_product(product_id):
     product = Product.query.get(product_id)
     if product:
-        # Delete associated inventory
-        inventory = Inventory.query.filter_by(product_id=product.id).first()
-        if inventory:
-            db.session.delete(inventory)
+        try:
+            # Delete all associated inventory
+            inventories = Inventory.query.filter_by(product_id=product.id).all()
+            for inv in inventories:
+                db.session.delete(inv)
 
-        # Delete associated orders
-        orders = Order.query.filter_by(product_id=product.id).all()
-        for order in orders:
-            db.session.delete(order)
+            # Delete all associated orders
+            orders = Order.query.filter_by(product_id=product.id).all()
+            for order in orders:
+                db.session.delete(order)
 
-        # Finally, delete the product
-        db.session.delete(product)
-        db.session.commit()
+            # Finally, delete the product
+            db.session.delete(product)
+            db.session.commit()
 
-        flash('Product successfully deleted!', 'success')
+            flash('Product successfully deleted!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error deleting product: {str(e)}', 'danger')
     else:
         flash('Product not found!', 'danger')
 
-    return redirect(url_for('admin_dashboard'))  # Redirect to the correct dashboard after deletion
+    return redirect(url_for('admin_dashboard'))
 
 
 """
