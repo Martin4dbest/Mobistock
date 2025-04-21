@@ -282,54 +282,61 @@ def get_google_sheet_data_by_location(sheet_name):
 
     for product_data in formatted_data:
         # Check if product already exists in the system
-        existing = Product.query.filter_by(identification_number=product_data['identification_number']).first()
+        existing = Product.query.filter_by(
+        identification_number=product_data['identification_number'],
+        location=sheet_name
+    ).first()
 
-        if not existing:
-            # Create new product if it doesn't exist
-            product = Product(
-                name=product_data['name'],
-                identification_number=product_data['identification_number'],
-                price=product_data['price'],
-                selling_price=None,  # Initially not set
-                location=sheet_name,  # Assign product to the location
-                in_stock=product_data['in_stock']  # Set the in_stock field correctly
-            )
-            db.session.add(product)
-            db.session.commit()  # Commit product first to get product id
 
-            # Prepare inventory for each seller based on location
-            for seller in sellers:
-                if seller.location == sheet_name:  # Check if seller's location matches the product's location
+        existing = Product.query.filter_by(
+    identification_number=product_data['identification_number'],
+    location=sheet_name
+).first()
+
+    if not existing:
+        # Create new product if it doesn't exist for this location
+        product = Product(
+            name=product_data['name'],
+            identification_number=product_data['identification_number'],
+            price=product_data['price'],
+            selling_price=None,
+            location=sheet_name,
+            in_stock=product_data['in_stock']
+        )
+        db.session.add(product)
+        db.session.commit()
+
+        for seller in sellers:
+            if seller.location == sheet_name:
+                inventory = Inventory(
+                    product_id=product.id,
+                    seller_id=seller.id,
+                    quantity_in_stock=product_data['in_stock'],
+                    in_stock=product_data['in_stock']
+                )
+                inventory_to_add.append(inventory)
+    else:
+        # Product already exists for this location — update
+        existing.name = product_data['name']
+        existing.price = product_data['price']
+        existing.in_stock = product_data['in_stock']
+
+        for seller in sellers:
+            if seller.location == sheet_name:
+                existing_inventory = Inventory.query.filter_by(
+                    product_id=existing.id, seller_id=seller.id
+                ).first()
+                if existing_inventory:
+                    existing_inventory.quantity_in_stock = existing.in_stock
+                    existing_inventory.in_stock = existing.in_stock
+                else:
                     inventory = Inventory(
-                        product_id=product.id,
+                        product_id=existing.id,
                         seller_id=seller.id,
-                        quantity_in_stock=product_data['in_stock'],  # Set initial stock
-                        in_stock=product_data['in_stock']
+                        quantity_in_stock=existing.in_stock,
+                        in_stock=existing.in_stock
                     )
                     inventory_to_add.append(inventory)
-        else:
-            # If the product exists, update its information
-            existing.name = product_data['name']
-            existing.price = product_data['price']
-            existing.in_stock = product_data['in_stock']
-
-            # Ensure the inventory for each seller is updated based on location
-            for seller in sellers:
-                if seller.location == sheet_name:  # Ensure that inventory is updated only for sellers in the same location
-                    existing_inventory = Inventory.query.filter_by(
-                        product_id=existing.id, seller_id=seller.id
-                    ).first()
-                    if existing_inventory:
-                        existing_inventory.quantity_in_stock = existing.in_stock
-                        existing_inventory.in_stock = existing.in_stock
-                    else:
-                        inventory = Inventory(
-                            product_id=existing.id,
-                            seller_id=seller.id,
-                            quantity_in_stock=existing.in_stock,
-                            in_stock=existing.in_stock
-                        )
-                        inventory_to_add.append(inventory)
 
     # Add all products and inventories to the session
     db.session.add_all(products_to_add)
@@ -820,7 +827,10 @@ def delete_user(user_id):
     # Find the user by ID
     user = User.query.get_or_404(user_id)
 
-    # Delete the user
+    # First, delete any inventory records tied to this user (seller)
+    Inventory.query.filter_by(seller_id=user.id).delete()
+
+    # Then, delete the user
     db.session.delete(user)
     db.session.commit()
 
