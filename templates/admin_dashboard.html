@@ -146,58 +146,52 @@ class="transition-all duration-300 ease-in-out bg-gray-900 text-white shadow-md 
 </div>
 
   <!-- Sidebar Header -->
-  <div x-show="sidebarOpen" class="p-4 text-xl font-bold border-b border-gray-700">
+  <div x-show="sidebarOpen" class="p-4 text-xl font-bold border-b border-gray-700 text-white">
     JOMAVIKO CO. LTD Admin
   </div>
 
   <!-- Sidebar Nav Links -->
-  <nav class="flex-grow space-y-4 text-sm font-medium mt-4" x-show="sidebarOpen">
+  <nav class="flex-grow mt-4 space-y-4 text-sm font-medium text-white" x-show="sidebarOpen">
     
-
-  <!-- Sidebar Nav Links -->
-  <nav class="flex-grow space-y-4 text-sm font-medium mt-4" x-show="sidebarOpen">
+    <!-- Orders from Shop Locations -->
     <a href="{{ url_for('select_order_location') }}"
-      style="color: white; text-decoration: none; transition: color 0.3s ease;"
-      onmouseover="this.style.color='green'" onmouseout="this.style.color='white'">
+      class="block hover:text-green-400 transition-colors duration-300">
       Orders from Shop Locations
     </a>
 
-      <!-- Register Seller / Admin Link -->
+    <!-- Register Seller / Admin Link -->
     <a href="{{ url_for('register') }}"
-      style="color: #38a169; text-decoration: none; transition: color 0.3s ease;"
-      onmouseover="this.style.color='#2f855a'" onmouseout="this.style.color='#38a169'">
+      class="block hover:text-green-400 transition-colors duration-300">
       Register Seller / Admin
     </a>
-  </nav>
 
-    
-     <!-- Admins and Sellers Details Section -->
-
-
-  <div class="mb-6">
-    
-    <h2 class="text-sm font-semibold">
-      <a href="{{ url_for('view_users') }}" class="text-white hover:text-green-500">
+    <!-- Registered Admins & Sales Reps -->
+    <div class="mt-6">
+      <h2 class="text-sm font-semibold">
+        <a href="{{ url_for('view_users') }}" class="hover:text-green-400">
           Registered Admins & Sales Reps
-      </a>
-    </h2>
+        </a>
+      </h2>
 
-    <div class="mt-4 space-y-2">
+      <div class="mt-4 space-y-2">
         {% for user in users %}
-            <div class="block text-sm text-gray-700 font-medium hover:text-green-400 cursor-pointer">
-                <a href="{{ url_for('view_users', user_id=user.id) }}">
-                    <p>{{ user.username }} ({{ user.role }})</p>
-                    {% if user.location %}
-                        <p>{{ user.location }}</p>
-                    {% endif %}
-                </a>
-            </div>
+          <a href="{{ url_for('view_users', user_id=user.id) }}"
+            class="block text-sm font-medium text-white hover:text-green-400 transition-colors duration-300">
+            <p>{{ user.username }} ({{ user.role }})</p>
+            {% if user.location %}
+              <p class="text-xs text-gray-400">{{ user.location }}</p>
+            {% endif %}
+          </a>
         {% endfor %}
+      </div>
     </div>
-    
-    <a href="{{ url_for('index') }}" class="block hover:text-red-400">Logout</a>
 
-  
+    <!-- Logout -->
+    <a href="{{ url_for('index') }}"
+      class="block mt-6 hover:text-red-400 transition-colors duration-300">
+      Logout
+    </a>
+  </nav>
 
   </nav>
 
