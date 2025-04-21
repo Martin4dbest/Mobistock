@@ -145,58 +145,55 @@ class="transition-all duration-300 ease-in-out bg-gray-900 text-white shadow-md 
   </button>
 </div>
 
-  <!-- Sidebar Header -->
+
+    <!-- Sidebar Header -->
   <div x-show="sidebarOpen" class="p-4 text-xl font-bold border-b border-gray-700">
-    JOMAVIKO CO. LTD Admin
+    JOMAVIKO CO. LTD <span style="color: #D4AF37;">Admin</span>
   </div>
+
 
   <!-- Sidebar Nav Links -->
   <nav class="flex-grow space-y-4 text-sm font-medium mt-4" x-show="sidebarOpen">
     
-
   <!-- Sidebar Nav Links -->
   <nav class="flex-grow space-y-4 text-sm font-medium mt-4" x-show="sidebarOpen">
     <a href="{{ url_for('select_order_location') }}"
-      style="color: white; text-decoration: none; transition: color 0.3s ease;"
-      onmouseover="this.style.color='green'" onmouseout="this.style.color='white'">
+      class="block text-white transition-colors duration-300 hover:text-green-400">
       Orders from Shop Locations
     </a>
 
-      <!-- Register Seller / Admin Link -->
+    <!-- Register Seller / Admin Link -->
     <a href="{{ url_for('register') }}"
-      style="color: #38a169; text-decoration: none; transition: color 0.3s ease;"
-      onmouseover="this.style.color='#2f855a'" onmouseout="this.style.color='#38a169'">
+      class="block text-white transition-colors duration-300 hover:text-green-400">
       Register Seller / Admin
     </a>
   </nav>
-    
-     <!-- Admins and Sellers Details Section -->
 
-
-  <div class="mb-6">
-    
-    <h2 class="text-sm font-semibold">
-      <a href="{{ url_for('view_users') }}" class="text-white hover:text-green-500">
-          Registered Admins & Sales Reps
+  <!-- Admins and Sellers Details Section -->
+  <div class="mb-6 mt-6">
+    <h2 class="text-sm font-semibold text-white mb-2">
+      <a href="{{ url_for('view_users') }}" class="hover:text-green-400">
+        Registered Admins & Sales Reps
       </a>
     </h2>
 
-    <div class="mt-4 space-y-2">
-        {% for user in users %}
-            <div class="block text-sm text-gray-700 font-medium hover:text-green-400 cursor-pointer">
-                <a href="{{ url_for('view_users', user_id=user.id) }}">
-                    <p>{{ user.username }} ({{ user.role }})</p>
-                    {% if user.location %}
-                        <p>{{ user.location }}</p>
-                    {% endif %}
-                </a>
-            </div>
-        {% endfor %}
+    <div class="space-y-2">
+      {% for user in users %}
+        <div class="block text-sm text-white font-medium hover:text-green-400 cursor-pointer">
+          <a href="{{ url_for('view_users', user_id=user.id) }}">
+            <p>{{ user.username }} ({{ user.role }})</p>
+            {% if user.location %}
+              <p>{{ user.location }}</p>
+            {% endif %}
+          </a>
+        </div>
+      {% endfor %}
     </div>
-    
-    <a href="{{ url_for('index') }}" class="block hover:text-red-400">Logout</a>
 
-  
+    <a href="{{ url_for('index') }}" class="block text-white mt-4 hover:text-red-400">
+      Logout
+    </a>
+  </div>
 
   </nav>
 
@@ -230,6 +227,14 @@ class="transition-all duration-300 ease-in-out bg-gray-900 text-white shadow-md 
       <h2 class="text-2xl font-extrabold text-indigo-900" style="font-family: 'Arial', sans-serif;">
         Admin Central Management Dashboard - JOMAVIKO CO. LTD
     </h2>
+
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-extrabold" style="color: #D4AF37; font-family: 'Arial', sans-serif;">
+        Admin Central Management Dashboard - JOMAVIKO CO. LTD
+      </h2>
+    </div>
+
   
     </div>
 
@@ -244,9 +249,11 @@ class="transition-all duration-300 ease-in-out bg-gray-900 text-white shadow-md 
           <!-- Add other locations here -->
       </select>
 
-      <button type="submit" name="import_button" value="1" class="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-md shadow">
+      <button type="submit" name="import_button" value="1" 
+        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md shadow">
         Import Product Details Based on Location
-    </button>
+      </button>
+
     
         
     </form>
