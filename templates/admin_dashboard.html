@@ -12,18 +12,31 @@
       display: flex;
       flex-direction: column;
       height: 100%;
+      margin: 0;
     }
 
     html, body {
       height: 100%;
+      margin: 0;
     }
 
     .main-content {
       flex-grow: 1;
+      overflow: auto; /* Ensures content is scrollable when necessary */
     }
 
     .sidebar {
       height: 100%;
+      background-color: #111; /* Ensures sidebar background is visible */
+      position: fixed; /* Keeps sidebar fixed on the left */
+      top: 0;
+      left: 0;
+      z-index: 1000;
+      width: 250px; /* Sidebar width */
+    }
+
+    .sidebar.collapsed {
+      width: 60px; /* Reduced width when collapsed */
     }
 
     .flash-message {
@@ -36,12 +49,17 @@
     }
 
     @media (max-width: 768px) {
+      /* Full-screen width for mobile */
       .sidebar {
         width: 100%;
-        position: relative;
+        position: fixed;
+        z-index: 1000;
+        height: 100%;
       }
+      
       .main-content {
         margin-left: 0;
+        padding: 1rem;
       }
     }
   </style>
@@ -93,99 +111,88 @@
   </script>
 </head>
 
-
-</head>
-
- <!-- ✅ Alpine.js Script (place this here) -->
- <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-
-
 <body class="bg-gray-50 min-h-screen text-gray-800 flex flex-col md:flex-row">
-  
 
   <!-- Sidebar -->
-<aside
-x-data="{ sidebarOpen: true }"
-class="transition-all duration-300 ease-in-out bg-gray-900 text-white shadow-md flex flex-col"
-:class="sidebarOpen ? 'w-64 p-4' : 'w-16 p-2'"
->
-<!-- Toggle Button -->
-<div class="flex justify-end mb-4">
-  <button
-    @click="sidebarOpen = !sidebarOpen"
-    class="focus:outline-none text-white hover:text-green-400"
-    title="Toggle Sidebar"
+  <aside
+    x-data="{ sidebarOpen: true }"
+    class="transition-all duration-300 ease-in-out bg-gray-900 text-white shadow-md flex flex-col fixed h-full"
+    :class="sidebarOpen ? 'w-64 p-4' : 'w-16 p-2'"
   >
-    <!-- Hamburger Icon -->
-    <svg x-show="!sidebarOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-      viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-        d="M4 6h16M4 12h16M4 18h16" />
-    </svg>
+    <!-- Toggle Button -->
+    <div class="flex justify-end mb-4">
+      <button
+        @click="sidebarOpen = !sidebarOpen"
+        class="focus:outline-none text-white hover:text-green-400"
+        title="Toggle Sidebar"
+      >
+        <!-- Hamburger Icon -->
+        <svg x-show="!sidebarOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
 
-    <!-- Arrow Icon -->
-    <svg x-show="sidebarOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
-      viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-        d="M6 18L18 12L6 6V18Z" />
-    </svg>
-  </button>
-</div>
-
-  <!-- Sidebar Header -->
-  <div x-show="sidebarOpen" class="p-4 text-xl font-bold border-b border-gray-700 text-white">
-    JOMAVIKO CO. LTD Admin
-  </div>
-
-  <!-- Sidebar Nav Links -->
-  <nav class="flex-grow mt-4 space-y-4 text-sm font-medium text-white" x-show="sidebarOpen">
-    
-    <!-- Orders from Shop Locations -->
-    <a href="{{ url_for('select_order_location') }}"
-      class="block hover:text-green-400 transition-colors duration-300">
-      Orders from Shop Locations
-    </a>
-
-    <!-- Register Seller / Admin Link -->
-    <a href="{{ url_for('register') }}"
-      class="block hover:text-green-400 transition-colors duration-300">
-      Register Seller / Admin
-    </a>
-
-    <!-- Registered Admins & Sales Reps -->
-    <div class="mt-6">
-      <h2 class="text-sm font-semibold">
-        <a href="{{ url_for('view_users') }}" class="hover:text-green-400">
-          Registered Admins & Sales Reps
-        </a>
-      </h2>
-
-      <div class="mt-4 space-y-2">
-        {% for user in users %}
-          <a href="{{ url_for('view_users', user_id=user.id) }}"
-            class="block text-sm font-medium text-white hover:text-green-400 transition-colors duration-300">
-            <p>{{ user.username }} ({{ user.role }})</p>
-            {% if user.location %}
-              <p class="text-xs text-gray-400">{{ user.location }}</p>
-            {% endif %}
-          </a>
-        {% endfor %}
-      </div>
+        <!-- Arrow Icon -->
+        <svg x-show="sidebarOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M6 18L18 12L6 6V18Z" />
+        </svg>
+      </button>
     </div>
 
-    <!-- Logout -->
-    <a href="{{ url_for('index') }}"
-      class="block mt-6 hover:text-red-400 transition-colors duration-300">
-      Logout
-    </a>
-  </nav>
+    <!-- Sidebar Header -->
+    <div x-show="sidebarOpen" class="p-4 text-xl font-bold border-b border-gray-700 text-white">
+      JOMAVIKO CO. LTD Admin
+    </div>
 
-  </nav>
+    <!-- Sidebar Nav Links -->
+    <nav class="flex-grow mt-4 space-y-4 text-sm font-medium text-white" x-show="sidebarOpen">
+      <!-- Orders from Shop Locations -->
+      <a href="{{ url_for('select_order_location') }}"
+        class="block hover:text-green-400 transition-colors duration-300">
+        Orders from Shop Locations
+      </a>
 
-  <!-- Footer -->
-  <div x-show="sidebarOpen" class="p-4 text-xs text-gray-400 border-t border-gray-700">
-    &copy; 2025 JOMAVIKO CO. LTD
-  </div>
+      <!-- Register Seller / Admin Link -->
+      <a href="{{ url_for('register') }}"
+        class="block hover:text-green-400 transition-colors duration-300">
+        Register Seller / Admin
+      </a>
+
+      <!-- Registered Admins & Sales Reps -->
+      <div class="mt-6">
+        <h2 class="text-sm font-semibold">
+          <a href="{{ url_for('view_users') }}" class="hover:text-green-400">
+            Registered Admins & Sales Reps
+          </a>
+        </h2>
+
+        <div class="mt-4 space-y-2">
+          {% for user in users %}
+            <a href="{{ url_for('view_users', user_id=user.id) }}"
+              class="block text-sm font-medium text-white hover:text-green-400 transition-colors duration-300">
+              <p>{{ user.username }} ({{ user.role }})</p>
+              {% if user.location %}
+                <p class="text-xs text-gray-400">{{ user.location }}</p>
+              {% endif %}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Logout -->
+      <a href="{{ url_for('index') }}"
+        class="block mt-6 hover:text-red-400 transition-colors duration-300">
+        Logout
+      </a>
+    </nav>
+
+    <!-- Footer -->
+    <div x-show="sidebarOpen" class="p-4 text-xs text-gray-400 border-t border-gray-700">
+      &copy; 2025 JOMAVIKO CO. LTD
+    </div>
   </aside>
 
   <!-- Main Content -->
