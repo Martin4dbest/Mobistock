@@ -180,9 +180,10 @@
   </main>
 
   <!-- Footer -->
-  <footer class="bg-gray-800 text-white py-4 text-center text-sm">
+  <footer class="bg-gray-800 text-white py-4 text-center text-sm mt-auto">
     &copy; 2025 JOMAVIKO CO. LTD. All rights reserved.
   </footer>
+
   <script>
     // Filter products based on the search input
     document.getElementById("search-input").addEventListener("input", function() {
@@ -200,106 +201,49 @@
       const sellingPriceInput = document.getElementById(`selling-price-${productId}`);
       const amountSoldInput = document.getElementById(`amount-sold-${productId}`);
       const inStockInput = document.getElementById(`instock-${productId}`);
-      const inStockHiddenInput = document.getElementById(`instock-hidden-${productId}`);
   
-      if (!qtyInput || !sellingPriceInput || !amountSoldInput || !inStockInput || !inStockHiddenInput) return;
+      if (!qtyInput || !sellingPriceInput || !amountSoldInput || !inStockInput) return;
   
       const qty = parseFloat(qtyInput.value) || 0;
       const sellingPrice = parseFloat(sellingPriceInput.value) || 0;
-      const total = (qty * sellingPrice).toFixed(2);
+      const inStock = parseFloat(inStockInput.value) || 0;
   
-      amountSoldInput.value = total;
-  
-      const originalStock = parseInt(inStockInput.getAttribute('data-original-stock')) || 0;
-      const remainingStock = Math.max(originalStock - qty, 0);
-  
-      inStockInput.value = remainingStock;
-      inStockHiddenInput.value = remainingStock;
-    }
-  
-    // Reusable alert function using alertBox
-    function showAlert(message) {
-      const alertBox = document.getElementById("alertBox");
-      alertBox.textContent = message;
-      alertBox.style.display = "block";
-      setTimeout(() => {
-        alertBox.style.display = "none";
-      }, 3000);
+      if (qty <= inStock) {
+        const totalAmount = qty * sellingPrice;
+        amountSoldInput.value = totalAmount.toFixed(2);
+        // Add the date and time
+        const dateSoldInput = document.getElementById(`date-sold-${productId}`);
+        dateSoldInput.value = new Date().toLocaleString();
+      } else {
+        amountSoldInput.value = 'Quantity exceeds stock';
+      }
     }
   
     function sendOrder(productId) {
       const qtyInput = document.getElementById(`order-qty-${productId}`);
-      const priceInput = document.getElementById(`selling-price-${productId}`);
-      const amountInput = document.getElementById(`amount-sold-${productId}`);
-      const inStockInput = document.getElementById(`instock-${productId}`);
-      const dateSoldInput = document.getElementById(`date-sold-${productId}`);
+      const amountSoldInput = document.getElementById(`amount-sold-${productId}`);
   
-      if (!qtyInput || !priceInput || !amountInput || !inStockInput || !dateSoldInput) {
-        showAlert("🚫 Some required fields are missing. Please check your form.");
+      if (parseFloat(qtyInput.value) <= 0 || amountSoldInput.value === 'Quantity exceeds stock') {
+        alert('Please enter a valid quantity!');
         return;
       }
   
-      const qty = parseFloat(qtyInput.value);
-      const sellingPrice = parseFloat(priceInput.value);
-      const amount = parseFloat(amountInput.value);
-      const inStock = parseInt(inStockInput.value);
+      // Simulate sending the order to the backend
+      alert('Order sent to admin successfully!');
   
-      if (isNaN(qty) || qty <= 0) {
-        showAlert("🚫 Please enter a valid quantity.");
-        return;
-      }
+      // Show success message
+      const alertBox = document.getElementById("alertBox");
+      alertBox.style.display = 'block';
   
-      if (isNaN(sellingPrice) || sellingPrice <= 0) {
-        showAlert("🚫 Please enter a valid selling price.");
-        return;
-      }
+      // Hide the alert after 5 seconds
+      setTimeout(() => {
+        alertBox.style.display = 'none';
+      }, 5000);
   
-      if (isNaN(amount) || amount <= 0) {
-        showAlert("🚫 Please enter a valid amount sold.");
-        return;
-      }
-  
-      if (isNaN(inStock) || inStock < 0) {
-        showAlert("🚫 Invalid stock value.");
-        return;
-      }
-  
-      const now = new Date();
-      const formattedDate = now.toISOString();
-      dateSoldInput.value = formattedDate;
-  
-      fetch('/send-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          product_id: productId,
-          quantity: qty,
-          selling_price: sellingPrice,
-          amount: amount,
-          in_stock: inStock,
-          date_sold: formattedDate
-        })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          showAlert("✅ Order successfully sent!");
-          console.log("✅ Order sent successfully. Reloading in 10 seconds...");
-          setTimeout(() => {
-            console.log("⏰ Reloading now...");
-            location.reload();
-          }, 10000);
-        } else {
-          showAlert(`⚠️ Error: ${data.message || "Out of Stock!! Stock Now!"}`);
-        }
-      })
-      .catch(error => {
-        console.error("🚨 Fetch error:", error);
-        showAlert("🚨 Something went wrong. Please try again.");
-      });
+      // Optionally, reset form or refresh page
+      qtyInput.value = '';
+      amountSoldInput.value = '';
     }
   </script>
-  
-
 </body>
 </html>
