@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+
+# Ignore DB backup
+mobistockdb_backup.sql
+
 # Distribution / packaging
 .Python
 build/

@@ -9,6 +9,21 @@
   <style>
     body {
       font-family: 'Inter', sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    .main-content {
+      flex-grow: 1;
+    }
+
+    .sidebar {
+      height: 100%;
     }
 
     .flash-message {
@@ -30,12 +45,17 @@
       }
     }
   </style>
+
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       const flashMessages = document.querySelectorAll('.flash-message');
       if (flashMessages.length > 0) {
         flashMessages.forEach(function (message) {
-          setTimeout(() => message.remove(), 4000);
+          // Make the message disappear after 4 seconds
+          setTimeout(() => {
+            message.style.opacity = '0'; // Fade out the message
+            setTimeout(() => message.remove(), 500); // Remove the element after the fade-out
+          }, 4000);
         });
       }
 
@@ -53,58 +73,25 @@
     });
   </script>
 
+  <script>
+    // Filter products based on the search input (product name or location)
+    function filterProducts() {
+      const searchQuery = document.getElementById('search-input').value.toLowerCase();
+      const rows = document.querySelectorAll('.product-row');
 
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const flashMessages = document.querySelectorAll('.flash-message');
-    if (flashMessages.length > 0) {
-      flashMessages.forEach(function (message) {
-        setTimeout(() => message.remove(), 4000);
+      rows.forEach(row => {
+        const productName = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+        const location = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+
+        if (productName.includes(searchQuery) || location.includes(searchQuery)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
       });
     }
-
-    function updateDateTime() {
-      const now = new Date();
-      const date = now.toLocaleDateString();
-      const time = now.toLocaleTimeString();
-      document.querySelectorAll('.current-date-time').forEach(el => {
-        el.textContent = `${date} ${time}`;
-      });
-    }
-
-    updateDateTime();
-    setInterval(updateDateTime, 1000);
-
-    // 🔄 Auto-refresh page every 5 seconds ONLY if search input is empty
-    setInterval(() => {
-      const searchInput = document.getElementById('search-input');
-      if (searchInput && searchInput.value.trim() === '') {
-        location.reload();
-      }
-    }, 50000);
-  });
-</script>
-  
-
-
-<script>
-  // Filter products based on the search input (product name or location)
-  function filterProducts() {
-    const searchQuery = document.getElementById('search-input').value.toLowerCase();
-    const rows = document.querySelectorAll('.product-row');
-
-    rows.forEach(row => {
-      const productName = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
-      const location = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
-
-      if (productName.includes(searchQuery) || location.includes(searchQuery)) {
-        row.style.display = '';
-      } else {
-        row.style.display = 'none';
-      }
-    });
-  }
-</script>
+  </script>
+</head>
 
 
 </head>
