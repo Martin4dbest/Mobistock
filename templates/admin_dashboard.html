@@ -104,11 +104,13 @@
   
 
   <!-- Sidebar -->
+
 <aside
-x-data="{ sidebarOpen: true }"
-class="transition-all duration-300 ease-in-out bg-gray-900 text-white shadow-md flex flex-col"
-:class="sidebarOpen ? 'w-64 p-4' : 'w-16 p-2'"
+  x-data="{ sidebarOpen: true }"
+  class="transition-all duration-300 ease-in-out bg-gray-200 text-gray-800 shadow-md flex flex-col h-screen"
+  :class="sidebarOpen ? 'w-[500px] p-4' : 'w-16 p-2'"
 >
+
 <!-- Toggle Button -->
 <div class="flex justify-end mb-4">
   <button
