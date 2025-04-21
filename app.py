@@ -47,7 +47,7 @@ def format_currency(value):
     return f"${value:,.2f}"
 
 # Define Product model
-
+"""
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -58,6 +58,21 @@ class Product(db.Model):
     seller = db.relationship('User', backref='products')
     selling_price = db.Column(db.Float, nullable=True)
     location = db.Column(db.String(100), nullable=True)  # change to True
+
+"""
+class Product(db.Model):
+    __tablename__ = 'product'
+    __table_args__ = (
+        db.UniqueConstraint('identification_number', 'location', name='uq_product_identification_per_location'),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    identification_number = db.Column(db.String(100), nullable=False)
+    in_stock = db.Column(db.Integer, nullable=False)
+    selling_price = db.Column(db.Float, nullable=True)
+    location = db.Column(db.String(100), nullable=False)  # Made required
 
 
 
