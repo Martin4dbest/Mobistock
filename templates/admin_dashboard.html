@@ -25,16 +25,6 @@
       overflow: auto; /* Ensures content is scrollable when necessary */
     }
 
-    .sidebar {
-      height: 100%;
-      background-color: #a8a0a0; /* Ensures sidebar background is visible */
-      position: fixed; /* Keeps sidebar fixed on the left */
-      top: 0;
-      left: 0;
-      z-index: 1000;
-      width: 250px; /* Sidebar width */
-    }
-
     .sidebar.collapsed {
       width: 60px; /* Reduced width when collapsed */
     }
@@ -114,11 +104,12 @@
 <body class="bg-gray-50 min-h-screen text-gray-800 flex flex-col md:flex-row">
 
   <!-- Sidebar -->
-  <aside
+    <aside
     x-data="{ sidebarOpen: true }"
-    class="transition-all duration-300 ease-in-out bg-gray-900 text-white shadow-md flex flex-col fixed h-full"
-    :class="sidebarOpen ? 'w-64 p-4' : 'w-16 p-2'"
+    class="transition-all duration-300 ease-in-out bg-gray-200 text-gray-900 shadow-md flex flex-col fixed top-0 left-0 h-full z-50"
+    :class="sidebarOpen ? 'w-[500px] p-4' : 'w-16 p-2'"
   >
+
     <!-- Toggle Button -->
     <div class="flex justify-end mb-4">
       <button
