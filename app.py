@@ -333,6 +333,7 @@ def get_google_sheet_data_by_location(sheet_name):
     return formatted_data
 
 """
+
 def get_google_sheet_data_by_location(sheet_name):
     service = authenticate_google_sheets()
     sheet = service.spreadsheets()
@@ -380,7 +381,7 @@ def get_google_sheet_data_by_location(sheet_name):
         ).first()
 
         if not existing:
-            # Create new product
+            # Create new product if it doesn't exist
             product = Product(
                 name=product_data['name'],
                 identification_number=product_data['identification_number'],
@@ -403,15 +404,12 @@ def get_google_sheet_data_by_location(sheet_name):
                     inventory_to_add.append(inventory)
 
         else:
-            # Check if the stock from the import should actually update the stock
-            # We only want to add new stock (not overwrite reduced stock due to orders)
-            existing_stock = existing.in_stock  # Current stock available
-            new_stock = product_data['in_stock']
-
-            # Only update stock if it's an increase, not a decrease
-            if new_stock > existing_stock:
-                existing.in_stock = new_stock
-                db.session.commit()
+            # When updating product, only increase stock if sheet stock is higher
+            existing.name = product_data['name']
+            existing.price = product_data['price']
+            if product_data['in_stock'] > existing.in_stock:
+                existing.in_stock += (product_data['in_stock'] - existing.in_stock)
+            db.session.commit()
 
             for seller in sellers:
                 if seller.location == sheet_name:
@@ -421,9 +419,9 @@ def get_google_sheet_data_by_location(sheet_name):
                     ).first()
 
                     if existing_inventory:
-                        # Add to seller inventory (only if the stock has increased)
-                        if new_stock > existing_inventory.quantity_in_stock:
-                            difference = new_stock - existing_inventory.quantity_in_stock
+                        # Add stock from sheet if necessary, don't overwrite reduced stock
+                        if product_data['in_stock'] > existing_inventory.quantity_in_stock:
+                            difference = product_data['in_stock'] - existing_inventory.quantity_in_stock
                             existing_inventory.quantity_in_stock += difference
                             existing_inventory.in_stock += difference
                     else:
@@ -431,8 +429,8 @@ def get_google_sheet_data_by_location(sheet_name):
                         inventory = Inventory(
                             product_id=existing.id,
                             seller_id=seller.id,
-                            quantity_in_stock=new_stock,
-                            in_stock=new_stock
+                            quantity_in_stock=product_data['in_stock'],
+                            in_stock=product_data['in_stock']
                         )
                         inventory_to_add.append(inventory)
 
@@ -441,7 +439,6 @@ def get_google_sheet_data_by_location(sheet_name):
 
     print(f"✅ Imported and updated {len(formatted_data)} products for {sheet_name}")
     return formatted_data
-
 
 
 
@@ -762,9 +759,6 @@ def logout():
     return redirect(url_for('index'))
 
 
-
-# Route to place/update an order (for seller)
-
 @app.route('/order/<int:product_id>', methods=['POST'])
 @login_required
 def place_order(product_id):
@@ -774,20 +768,28 @@ def place_order(product_id):
     quantity = int(request.form['quantity'])
     selling_price = float(request.form['selling_price'])
 
+    # Fetch the product and inventory details
     product = Product.query.get(product_id)
-    inventory = Inventory.query.filter_by(product_id=product_id).first()
+    inventory = Inventory.query.filter_by(product_id=product_id, seller_id=current_user.id).first()
 
     if not product or not inventory:
         flash('Product or inventory not found.', 'danger')
         return redirect(url_for('seller_dashboard'))
 
+    # Check if there is enough stock
     if inventory.quantity_in_stock >= quantity:
+        # Deduct stock from the seller's inventory
         inventory.quantity_in_stock -= quantity
         inventory.quantity_sold += quantity
         db.session.commit()
 
+        # Update global product stock
+        product.in_stock -= quantity
+        db.session.commit()
+
         total_amount = quantity * selling_price
 
+        # Create the new order
         new_order = Order(
             product_id=product_id,
             quantity=quantity,
@@ -798,11 +800,19 @@ def place_order(product_id):
         db.session.add(new_order)
         db.session.commit()
 
+        # Update admin's inventory with reduced stock
+        admin_inventory = Inventory.query.filter_by(product_id=product_id).all()
+        for inventory in admin_inventory:
+            inventory.in_stock = inventory.quantity_in_stock  # Reflect the reduced stock for admin
+        db.session.commit()
+
         flash(f"Order placed successfully for {product.name}!", 'success')
     else:
         flash('Not enough stock available.', 'danger')
 
     return redirect(url_for('seller_dashboard'))
+
+
 
 @app.route('/register', methods=['GET', 'POST'])
 @login_required
