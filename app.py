@@ -232,7 +232,6 @@ def authenticate_google_sheets():
     except Exception as e:
         print(f"❌ Error during Google Sheets authentication: {e}")
         return None
-    
 def get_google_sheet_data_by_location(sheet_name):
     service = authenticate_google_sheets()
     sheet = service.spreadsheets()
@@ -300,7 +299,7 @@ def get_google_sheet_data_by_location(sheet_name):
                 in_stock=product_data['in_stock']
             )
             db.session.add(product)
-            db.session.commit()
+            db.session.commit()  # Commit after creating the new product
 
             # Add inventory for sellers at this location
             for seller in sellers:
@@ -318,6 +317,9 @@ def get_google_sheet_data_by_location(sheet_name):
             existing.price = product_data['price']
             existing.in_stock = product_data['in_stock']
 
+            # Ensure the product's in_stock is correctly updated
+            db.session.commit()  # Commit after updating the product
+
             # Update inventory for sellers
             for seller in sellers:
                 if seller.location == sheet_name:
@@ -325,9 +327,11 @@ def get_google_sheet_data_by_location(sheet_name):
                         product_id=existing.id, seller_id=seller.id
                     ).first()
                     if existing_inventory:
+                        # Update existing inventory with the new stock level
                         existing_inventory.quantity_in_stock = existing.in_stock
                         existing_inventory.in_stock = existing.in_stock
                     else:
+                        # Create new inventory if none exists
                         inventory = Inventory(
                             product_id=existing.id,
                             seller_id=seller.id,
@@ -339,10 +343,11 @@ def get_google_sheet_data_by_location(sheet_name):
     # Add all products and inventories to the session
     db.session.add_all(products_to_add)
     db.session.add_all(inventory_to_add)
-    db.session.commit()
+    db.session.commit()  # Final commit to save all changes
 
     print(f"✅ Imported {len(formatted_data)} products for {sheet_name}")
     return formatted_data
+
 
 
 @app.route('/import-products', methods=['POST'])
