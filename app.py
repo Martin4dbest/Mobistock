@@ -60,10 +60,7 @@ class Product(db.Model):
     location = db.Column(db.String(100), nullable=True)  # change to True
 
 """
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import UserMixin
 
-db = SQLAlchemy()
 
 # Define Product model
 class Product(db.Model):
