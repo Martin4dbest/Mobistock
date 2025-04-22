@@ -171,9 +171,6 @@ class="transition-all duration-300 ease-in-out bg-gray-900 text-white shadow-md 
       {% endfor %}
     </div>
 
-      <a href="{{ url_for('export_stock_history_excel') }}" class="btn btn-primary">
-        📤 Export Stock History (Excel)
-    </a>
 
     <div x-data="{ openExportDropdown: false }" class="relative">
       <!-- Export Button -->
@@ -245,44 +242,6 @@ class="transition-all duration-300 ease-in-out bg-gray-900 text-white shadow-md 
 
 
 
-  <!-- Filter Form for Stock History Export -->
-  <h3>Export Stock History</h3>
-  <form method="get" action="{{ url_for('export_stock_history_excel') }}">
-      <div class="form-row">
-          <div class="form-group col-md-3">
-              <label for="start_date">Start Date</label>
-              <input type="date" class="form-control" id="start_date" name="start_date">
-          </div>
-          <div class="form-group col-md-3">
-              <label for="end_date">End Date</label>
-              <input type="date" class="form-control" id="end_date" name="end_date">
-          </div>
-          <div class="form-group col-md-3">
-              <label for="admin_id">Admin</label>
-              <select class="form-control" id="admin_id" name="admin_id">
-                  <option value="">Select Admin</option>
-                  {% for admin in admins %}
-                      <option value="{{ admin.id }}">{{ admin.username }}</option>
-                  {% endfor %}
-              </select>
-          </div>
-          <div class="form-group col-md-3">
-              <label for="product_id">Product</label>
-              <select class="form-control" id="product_id" name="product_id">
-                  <option value="">Select Product</option>
-                  {% for product in products %}
-                      <option value="{{ product.id }}">{{ product.name }}</option>
-                  {% endfor %}
-              </select>
-          </div>
-          <div class="form-group col-md-3">
-              <label for="location">Location</label>
-              <input type="text" class="form-control" id="location" name="location">
-          </div>
-      </div>
-
-      <button type="submit" class="btn btn-primary">Export</button>
-  </form>
 
   <!-- Main Content -->
   <main class="flex-grow p-6 bg-gray-100 main-content">
