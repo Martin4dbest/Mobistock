@@ -233,7 +233,7 @@ def authenticate_google_sheets():
         print(f"❌ Error during Google Sheets authentication: {e}")
         return None
 
-
+        
 def get_google_sheet_data_by_location(sheet_name):
     service = authenticate_google_sheets()
     sheet = service.spreadsheets()
@@ -301,6 +301,7 @@ def get_google_sheet_data_by_location(sheet_name):
                 in_stock=product_data['in_stock']
             )
             db.session.add(product)
+            db.session.commit()  # Commit after creating the new product
 
             # Add inventory for sellers at this location
             for seller in sellers:
@@ -317,6 +318,9 @@ def get_google_sheet_data_by_location(sheet_name):
             existing.name = product_data['name']
             existing.price = product_data['price']
             existing.in_stock = product_data['in_stock']
+
+            # Ensure the product's in_stock is correctly updated
+            db.session.commit()  # Commit after updating the product
 
             # Update inventory for sellers
             for seller in sellers:
@@ -342,9 +346,6 @@ def get_google_sheet_data_by_location(sheet_name):
     db.session.add_all(products_to_add)
     db.session.add_all(inventory_to_add)
     db.session.commit()  # Final commit to save all changes
-
-    # Refresh the session to ensure the latest data is reflected in queries
-    db.session.refresh(existing)  # Refresh to get updated state
 
     print(f"✅ Imported {len(formatted_data)} products for {sheet_name}")
     return formatted_data
