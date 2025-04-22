@@ -39,6 +39,7 @@
         });
       }
 
+      // Update Date and Time
       function updateDateTime() {
         const now = new Date();
         const date = now.toLocaleDateString();
@@ -50,62 +51,42 @@
 
       updateDateTime();
       setInterval(updateDateTime, 1000);
+
+      // This section does NOT trigger import on refresh
+      // Simply refreshes the page but doesn't run the import
+      // So the import process only happens when manually clicked by the admin
+    });
+
+    // Simulate the product import process when manually triggered
+    function importProducts() {
+      console.log('Importing products...');
+      // Replace this with your actual import code
+    }
+
+    // Event listener for the "Import Products" button
+    document.getElementById('import-button').addEventListener('click', function() {
+      importProducts();  // Call your import function here
     });
   </script>
 
+  <script>
+    // Filter products based on the search input (product name or location)
+    function filterProducts() {
+      const searchQuery = document.getElementById('search-input').value.toLowerCase();
+      const rows = document.querySelectorAll('.product-row');
 
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const flashMessages = document.querySelectorAll('.flash-message');
-    if (flashMessages.length > 0) {
-      flashMessages.forEach(function (message) {
-        setTimeout(() => message.remove(), 4000);
+      rows.forEach(row => {
+        const productName = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+        const location = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+
+        if (productName.includes(searchQuery) || location.includes(searchQuery)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
       });
     }
-
-    function updateDateTime() {
-      const now = new Date();
-      const date = now.toLocaleDateString();
-      const time = now.toLocaleTimeString();
-      document.querySelectorAll('.current-date-time').forEach(el => {
-        el.textContent = `${date} ${time}`;
-      });
-    }
-
-    updateDateTime();
-    setInterval(updateDateTime, 1000);
-
-    // 🔄 Auto-refresh page every 5 seconds ONLY if search input is empty
-    setInterval(() => {
-      const searchInput = document.getElementById('search-input');
-      if (searchInput && searchInput.value.trim() === '') {
-        location.reload();
-      }
-    }, 50000);
-  });
-</script>
-  
-
-
-<script>
-  // Filter products based on the search input (product name or location)
-  function filterProducts() {
-    const searchQuery = document.getElementById('search-input').value.toLowerCase();
-    const rows = document.querySelectorAll('.product-row');
-
-    rows.forEach(row => {
-      const productName = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
-      const location = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
-
-      if (productName.includes(searchQuery) || location.includes(searchQuery)) {
-        row.style.display = '';
-      } else {
-        row.style.display = 'none';
-      }
-    });
-  }
-</script>
-
+  </script>
 
 </head>
 
