@@ -97,6 +97,82 @@ class User(UserMixin, db.Model):
     location = db.Column(db.String(100), nullable=True)
 
 
+class StockHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    admin_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # who made the change
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
+    seller_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    change_amount = db.Column(db.Integer)  # can be + or -
+    reason = db.Column(db.String(255))  # optional note
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    admin = db.relationship('User', foreign_keys=[admin_id])
+    seller = db.relationship('User', foreign_keys=[seller_id])
+    product = db.relationship('Product')
+
+
+
+import pandas as pd
+from io import BytesIO
+from flask import send_file
+
+from datetime import datetime
+
+@app.route('/admin/export-stock-history', methods=['GET', 'POST'])
+def export_stock_history_excel():
+    if not current_user.is_authenticated or current_user.role != 'admin':
+        return "Unauthorized", 403
+
+    # Get filter values from request arguments or defaults
+    start_date = request.args.get('start_date', '')
+    end_date = request.args.get('end_date', '')
+    admin_id = request.args.get('admin_id', '')
+    product_id = request.args.get('product_id', '')
+    location = request.args.get('location', '')
+
+    query = StockHistory.query
+
+    # Apply filters
+    if start_date:
+        query = query.filter(StockHistory.created_at >= datetime.strptime(start_date, '%Y-%m-%d'))
+    if end_date:
+        query = query.filter(StockHistory.created_at <= datetime.strptime(end_date, '%Y-%m-%d'))
+    if admin_id:
+        query = query.filter(StockHistory.admin_id == admin_id)
+    if product_id:
+        query = query.filter(StockHistory.product_id == product_id)
+    if location:
+        query = query.join(Product).filter(Product.location == location)
+
+    stock_changes = query.order_by(StockHistory.created_at.desc()).all()
+
+    # Prepare data for Excel export
+    data = []
+    for entry in stock_changes:
+        data.append({
+            'Date': entry.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'Admin': entry.admin.username if entry.admin else entry.admin_id,
+            'Product': entry.product.name if entry.product else entry.product_id,
+            'Seller': entry.seller.username if entry.seller else entry.seller_id,
+            'Change': entry.change_amount,
+            'Reason': entry.reason or ''
+        })
+
+    # Create Excel file
+    df = pd.DataFrame(data)
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Stock History')
+
+    output.seek(0)
+    return send_file(
+        output,
+        download_name='stock_history_filtered.xlsx',
+        as_attachment=True,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+
+
 
 # Load user for Flask-Login
 @login_manager.user_loader
@@ -594,72 +670,64 @@ def admin_dashboard():
 
     # Handle import from Google Sheets
     if request.method == 'POST' and 'import_button' in request.form:
-        # Get the location from the form
-        location = request.form.get('location')  # The location is now explicitly selected
-        
+        location = request.form.get('location')
+
         if not location:
             flash("Please select a location before importing data.", "danger")
             return redirect(url_for('admin_dashboard'))
 
         try:
-            # Get the sheet data for the given location
             sheet_data = get_google_sheet_data_by_location(location)
-            
             if not sheet_data:
-                flash(f"No data found for location {location}. Please check the sheet name.", "danger")
+                flash(f"No data found for location {location}.", "danger")
                 return redirect(url_for('admin_dashboard'))
 
-            # Process the sheet data and assign products to sellers
             for row in sheet_data:
                 name = row.get('name', '').strip()
                 identification_number = row.get('identification_number', '').strip()
-                price = float(row.get('price', 0.0))  # Base price only
+                price = float(row.get('price', 0.0))
                 in_stock = row.get('in_stock', 0)
 
                 if name and identification_number:
-                    # Check if the product already exists in the system
                     existing = Product.query.filter_by(identification_number=identification_number).first()
                     if not existing:
-                        # Create the product
                         product = Product(
                             name=name,
                             identification_number=identification_number,
                             price=price,
-                            selling_price=None,  # Initially not set
-                            location=location  # Assign product to the location
+                            selling_price=None,
+                            location=location
                         )
                         db.session.add(product)
-                        db.session.commit()  # Commit to get product.id
+                        db.session.commit()
 
-                        # Get all sellers for this location and assign the product to them
                         sellers = User.query.filter(User.location.ilike(location), User.role == 'seller').all()
-                        if sellers:
-                            for seller in sellers:
-                                # Create inventory for each seller with initial stock
-                                inventory = Inventory(
-                                    product_id=product.id,
-                                    seller_id=seller.id,
-                                    quantity_in_stock=10 if in_stock else 0  # Set initial stock
-                                )
-                                db.session.add(inventory)
+                        for seller in sellers:
+                            inventory = Inventory(
+                                product_id=product.id,
+                                seller_id=seller.id,
+                                quantity_in_stock=10 if in_stock else 0
+                            )
+                            db.session.add(inventory)
 
             db.session.commit()
             flash(f"Successfully imported data for location {location}!", "success")
 
         except Exception as e:
-            # Handle any unexpected errors
             flash(f"An error occurred while importing data: {str(e)}", "danger")
 
-    # Search logic (products search functionality)
+    # Search logic
     search_query = request.args.get('search', '').strip()
     if search_query:
         products = Product.query.filter(Product.name.ilike(f"%{search_query}%")).all()
     else:
         products = Product.query.all()
 
-    # Get all inventories and orders for the admin view
     inventories = {inv.product_id: inv for inv in Inventory.query.all()}
     orders = Order.query.all()
+
+    # 👇 Add this line to fetch all admins
+    admins = User.query.filter_by(role='admin').all()
 
     return render_template(
         'admin_dashboard.html',
@@ -668,6 +736,7 @@ def admin_dashboard():
         orders=orders,
         user_role='admin',
         search_query=search_query,
+        admins=admins  # 👈 Add this to pass admins into your template
     )
 
 

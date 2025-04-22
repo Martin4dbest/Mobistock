@@ -171,6 +171,65 @@ class="transition-all duration-300 ease-in-out bg-gray-900 text-white shadow-md 
       {% endfor %}
     </div>
 
+      <a href="{{ url_for('export_stock_history_excel') }}" class="btn btn-primary">
+        📤 Export Stock History (Excel)
+    </a>
+
+    <div x-data="{ openExportDropdown: false }" class="relative">
+      <!-- Export Button -->
+      <button @click="openExportDropdown = !openExportDropdown"
+              class="btn btn-primary w-full flex items-center justify-between">
+        📤 Export Stock History (Excel)
+        <svg :class="{ 'rotate-180': openExportDropdown }" class="ml-2 w-4 h-4 transition-transform"
+             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 9l-7 7-7-7"/>
+        </svg>
+      </button>
+    
+      <!-- Dropdown Form -->
+      <div x-show="openExportDropdown"
+           @click.away="openExportDropdown = false"
+           class="absolute z-50 bg-white text-black p-4 mt-2 rounded shadow w-[300px]">
+    
+        <form method="get" action="{{ url_for('export_stock_history_excel') }}">
+          <div class="mb-2">
+            <label class="block text-sm font-semibold">Start Date</label>
+            <input type="date" class="form-control w-full" name="start_date">
+          </div>
+          <div class="mb-2">
+            <label class="block text-sm font-semibold">End Date</label>
+            <input type="date" class="form-control w-full" name="end_date">
+          </div>
+          <div class="mb-2">
+            <label class="block text-sm font-semibold">Admin</label>
+            <select class="form-control w-full" name="admin_id">
+              <option value="">All Admins</option>
+              {% for admin in admins %}
+                <option value="{{ admin.id }}">{{ admin.username }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="block text-sm font-semibold">Product</label>
+            <select class="form-control w-full" name="product_id">
+              <option value="">All Products</option>
+              {% for product in products %}
+                <option value="{{ product.id }}">{{ product.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="block text-sm font-semibold">Location</label>
+            <input type="text" class="form-control w-full" name="location" placeholder="e.g. Lagos">
+          </div>
+          <button type="submit" class="btn btn-success w-full mt-2">Export</button>
+        </form>
+      </div>
+    </div>
+    
+    
+
     <a href="{{ url_for('index') }}" class="block text-white mt-4 hover:text-red-400">
       Logout
     </a>
@@ -183,6 +242,47 @@ class="transition-all duration-300 ease-in-out bg-gray-900 text-white shadow-md 
     &copy; 2025 JOMAVIKO CO. LTD
   </div>
   </aside>
+
+
+
+  <!-- Filter Form for Stock History Export -->
+  <h3>Export Stock History</h3>
+  <form method="get" action="{{ url_for('export_stock_history_excel') }}">
+      <div class="form-row">
+          <div class="form-group col-md-3">
+              <label for="start_date">Start Date</label>
+              <input type="date" class="form-control" id="start_date" name="start_date">
+          </div>
+          <div class="form-group col-md-3">
+              <label for="end_date">End Date</label>
+              <input type="date" class="form-control" id="end_date" name="end_date">
+          </div>
+          <div class="form-group col-md-3">
+              <label for="admin_id">Admin</label>
+              <select class="form-control" id="admin_id" name="admin_id">
+                  <option value="">Select Admin</option>
+                  {% for admin in admins %}
+                      <option value="{{ admin.id }}">{{ admin.username }}</option>
+                  {% endfor %}
+              </select>
+          </div>
+          <div class="form-group col-md-3">
+              <label for="product_id">Product</label>
+              <select class="form-control" id="product_id" name="product_id">
+                  <option value="">Select Product</option>
+                  {% for product in products %}
+                      <option value="{{ product.id }}">{{ product.name }}</option>
+                  {% endfor %}
+              </select>
+          </div>
+          <div class="form-group col-md-3">
+              <label for="location">Location</label>
+              <input type="text" class="form-control" id="location" name="location">
+          </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Export</button>
+  </form>
 
   <!-- Main Content -->
   <main class="flex-grow p-6 bg-gray-100 main-content">
