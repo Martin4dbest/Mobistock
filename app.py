@@ -232,6 +232,10 @@ def authenticate_google_sheets():
     except Exception as e:
         print(f"❌ Error during Google Sheets authentication: {e}")
         return None
+
+
+
+        
 def get_google_sheet_data_by_location(sheet_name):
     service = authenticate_google_sheets()
     sheet = service.spreadsheets()
