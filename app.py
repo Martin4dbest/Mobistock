@@ -333,7 +333,6 @@ def get_google_sheet_data_by_location(sheet_name):
     return formatted_data
 
 """
-
 def get_google_sheet_data_by_location(sheet_name):
     service = authenticate_google_sheets()
     sheet = service.spreadsheets()
@@ -404,11 +403,15 @@ def get_google_sheet_data_by_location(sheet_name):
                     inventory_to_add.append(inventory)
 
         else:
-            # Update existing product - add to in_stock
-            existing.name = product_data['name']
-            existing.price = product_data['price']
-            existing.in_stock += product_data['in_stock']
-            db.session.commit()
+            # Check if the stock from the import should actually update the stock
+            # We only want to add new stock (not overwrite reduced stock due to orders)
+            existing_stock = existing.in_stock  # Current stock available
+            new_stock = product_data['in_stock']
+
+            # Only update stock if it's an increase, not a decrease
+            if new_stock > existing_stock:
+                existing.in_stock = new_stock
+                db.session.commit()
 
             for seller in sellers:
                 if seller.location == sheet_name:
@@ -418,16 +421,18 @@ def get_google_sheet_data_by_location(sheet_name):
                     ).first()
 
                     if existing_inventory:
-                        # Add to seller inventory too
-                        existing_inventory.quantity_in_stock += product_data['in_stock']
-                        existing_inventory.in_stock += product_data['in_stock']
+                        # Add to seller inventory (only if the stock has increased)
+                        if new_stock > existing_inventory.quantity_in_stock:
+                            difference = new_stock - existing_inventory.quantity_in_stock
+                            existing_inventory.quantity_in_stock += difference
+                            existing_inventory.in_stock += difference
                     else:
                         # Create new seller inventory
                         inventory = Inventory(
                             product_id=existing.id,
                             seller_id=seller.id,
-                            quantity_in_stock=product_data['in_stock'],
-                            in_stock=product_data['in_stock']
+                            quantity_in_stock=new_stock,
+                            in_stock=new_stock
                         )
                         inventory_to_add.append(inventory)
 
@@ -436,6 +441,7 @@ def get_google_sheet_data_by_location(sheet_name):
 
     print(f"✅ Imported and updated {len(formatted_data)} products for {sheet_name}")
     return formatted_data
+
 
 
 
