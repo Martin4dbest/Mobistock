@@ -37,34 +37,11 @@ migrate = Migrate(app, db)
 
 
 
-print(app.config['SQLALCHEMY_DATABASE_URI'])
-
-
-
 # Register the currency filter for formatting prices
 @app.template_filter('currency')
 def format_currency(value):
     return f"${value:,.2f}"
 
-# Define Product model
-"""
-class Product(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    price = db.Column(db.Float, nullable=False)  # Could be used for display or reference
-    identification_number = db.Column(db.String(100), unique=True, nullable=False)
-    in_stock = db.Column(db.Integer, nullable=False)
-    seller_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    seller = db.relationship('User', backref='products')
-    selling_price = db.Column(db.Float, nullable=True)
-    location = db.Column(db.String(100), nullable=True)  # change to True
-
-"""
-
-from flask_login import UserMixin
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy()
 
 # Define Product model
 class Product(db.Model):
