@@ -61,6 +61,10 @@ class Product(db.Model):
 
 """
 
+from flask_login import UserMixin
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
 
 # Define Product model
 class Product(db.Model):
@@ -75,10 +79,10 @@ class Product(db.Model):
     identification_number = db.Column(db.String(100), nullable=False)
     in_stock = db.Column(db.Integer, nullable=False)
     selling_price = db.Column(db.Float, nullable=True)
-    location = db.Column(db.String(100), nullable=False)  # Location is now required
+    location = db.Column(db.String(100), nullable=False)
 
     # Relationships
-    inventory = db.relationship('Inventory', backref='product', lazy=True)
+    inventory_items = db.relationship('Inventory', backref='product', lazy=True)
     orders = db.relationship('Order', backref='product', lazy=True)
 
 
@@ -88,12 +92,11 @@ class Inventory(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
     quantity_in_stock = db.Column(db.Integer, nullable=False, default=0)
     quantity_sold = db.Column(db.Integer, nullable=False, default=0)
-    in_stock = db.Column(db.Integer, nullable=False)  # Tracks quantity in stock
+    in_stock = db.Column(db.Integer, nullable=False)
     seller_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     # Relationships
-    product = db.relationship('Product', backref=db.backref('inventory', lazy=True))
-    seller = db.relationship('User', backref=db.backref('inventory', lazy=True))
+    seller = db.relationship('User', backref='inventory_items')
 
 
 # Define Order model
@@ -101,14 +104,11 @@ class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
-    status = db.Column(db.String(50), default='pending')  # Default status is 'pending'
-    selling_price = db.Column(db.Float, nullable=True)  # Selling price of the product
-    amount = db.Column(db.Float, nullable=True)  # Calculated as qty * selling_price
+    status = db.Column(db.String(50), default='pending')
+    selling_price = db.Column(db.Float, nullable=True)
+    amount = db.Column(db.Float, nullable=True)
     in_stock = db.Column(db.Integer, nullable=False)
     date_sold = db.Column(db.DateTime, nullable=False)
-
-    # Relationships
-    product = db.relationship('Product', backref=db.backref('orders', lazy=True))
 
 
 # Define User model for authentication (admin/seller)
@@ -117,10 +117,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(100), nullable=False, unique=True)
     password = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(50), nullable=False)  # "admin" or "seller"
-    location = db.Column(db.String(100), nullable=True)  # Seller's location (optional)
-
-    # Relationships
-    inventory = db.relationship('Inventory', backref='user', lazy=True)
+    location = db.Column(db.String(100), nullable=True)
 
 
 
