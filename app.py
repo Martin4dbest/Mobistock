@@ -332,8 +332,9 @@ def get_google_sheet_data_by_location(sheet_name):
                     ).first()
                     if existing_inventory:
                         # Update existing inventory with the new stock level
-                        existing_inventory.quantity_in_stock = existing.in_stock
-                        existing_inventory.in_stock = existing.in_stock
+                        #existing_inventory.quantity_in_stock = existing.in_stock
+                        #existing_inventory.in_stock = existing.in_stock
+                        pass
                     else:
                         # Create new inventory if none exists
                         inventory = Inventory(
