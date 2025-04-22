@@ -118,14 +118,16 @@ from flask import send_file
 
 from datetime import datetime
 
+from datetime import datetime, timedelta
+
 @app.route('/admin/export-stock-history', methods=['GET', 'POST'])
 def export_stock_history_excel():
     if not current_user.is_authenticated or current_user.role != 'admin':
         return "Unauthorized", 403
 
     # Get filter values from request arguments or defaults
-    start_date = request.args.get('start_date', '')
-    end_date = request.args.get('end_date', '')
+    start_date_str = request.args.get('start_date', '')
+    end_date_str = request.args.get('end_date', '')
     admin_id = request.args.get('admin_id', '')
     product_id = request.args.get('product_id', '')
     location = request.args.get('location', '')
@@ -133,10 +135,12 @@ def export_stock_history_excel():
     query = StockHistory.query
 
     # Apply filters
-    if start_date:
-        query = query.filter(StockHistory.created_at >= datetime.strptime(start_date, '%Y-%m-%d'))
-    if end_date:
-        query = query.filter(StockHistory.created_at <= datetime.strptime(end_date, '%Y-%m-%d'))
+    if start_date_str:
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+        query = query.filter(StockHistory.created_at >= start_date)
+    if end_date_str:
+        end_date = datetime.strptime(end_date_str, '%Y-%m-%d') + timedelta(days=1) - timedelta(seconds=1)
+        query = query.filter(StockHistory.created_at <= end_date)
     if admin_id:
         query = query.filter(StockHistory.admin_id == admin_id)
     if product_id:
@@ -171,6 +175,7 @@ def export_stock_history_excel():
         as_attachment=True,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
+
 
 
 
