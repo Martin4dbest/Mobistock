@@ -234,206 +234,9 @@ def authenticate_google_sheets():
         return None
 
 
-"""
-   #DOES NOT REFLECT ORDER PLACED AT ALL.     
-def get_google_sheet_data_by_location(sheet_name):
-    service = authenticate_google_sheets()
-    sheet = service.spreadsheets()
-
-    result = sheet.values().get(
-        spreadsheetId=SPREADSHEET_ID,
-        range=f"{sheet_name}!A2:D"  # Name | ID | Price | In Stock
-    ).execute()
-
-    values = result.get('values', [])
-    if not values:
-        print(f"No data found in sheet {sheet_name}")
-        return []
-
-    sellers = User.query.filter(User.location.ilike(sheet_name), User.role == 'seller').all()
-    if not sellers:
-        print(f"No sellers found for location: {sheet_name}")
-        return []
-
-    formatted_data = []
-
-    for row in values:
-        name = row[0] if len(row) > 0 else ''
-        identification_number = row[1] if len(row) > 1 else ''
-        price = float(row[2]) if len(row) > 2 and row[2] else 0.0
-        in_stock = 0
-        if len(row) > 3:
-            try:
-                in_stock = int(row[3]) if row[3] not in [None, '', 'null', 'None'] else 0
-            except ValueError:
-                in_stock = 0
-
-        formatted_data.append({
-            'name': name,
-            'identification_number': identification_number,
-            'price': price,
-            'in_stock': in_stock,
-        })
-
-    inventory_to_add = []
-
-    for product_data in formatted_data:
-        existing = Product.query.filter_by(
-            identification_number=product_data['identification_number'],
-            location=sheet_name
-        ).first()
-
-        if not existing:
-            # Only for new product, use in_stock from Google Sheet
-            product = Product(
-                name=product_data['name'],
-                identification_number=product_data['identification_number'],
-                price=product_data['price'],
-                selling_price=None,
-                location=sheet_name,
-                in_stock=product_data['in_stock']
-            )
-            db.session.add(product)
-            db.session.commit()
-
-            for seller in sellers:
-                if seller.location == sheet_name:
-                    inventory = Inventory(
-                        product_id=product.id,
-                        seller_id=seller.id,
-                        quantity_in_stock=product_data['in_stock'],
-                        in_stock=product_data['in_stock']
-                    )
-                    inventory_to_add.append(inventory)
-        else:
-            # Do not update `in_stock` from sheet if product already exists
-            existing.name = product_data['name']
-            existing.price = product_data['price']
-            db.session.commit()
-
-            for seller in sellers:
-                if seller.location == sheet_name:
-                    existing_inventory = Inventory.query.filter_by(
-                        product_id=existing.id, seller_id=seller.id
-                    ).first()
-                    if not existing_inventory:
-                        inventory = Inventory(
-                            product_id=existing.id,
-                            seller_id=seller.id,
-                            quantity_in_stock=existing.in_stock,
-                            in_stock=existing.in_stock
-                        )
-                        inventory_to_add.append(inventory)
-
-    db.session.add_all(inventory_to_add)
-    db.session.commit()
-
-    print(f"✅ Imported {len(formatted_data)} products for {sheet_name}")
-    return formatted_data
 
 """
-
-
-"""
-#UPDATES FROM SHEET AND CHANGES THE INSTOCK BACK TO ORIGINAL , BUT IMPORTED , IT CHANGES THE INSTOCK...NO WAY
-def get_google_sheet_data_by_location(sheet_name):
-    service = authenticate_google_sheets()
-    sheet = service.spreadsheets()
-
-    result = sheet.values().get(
-        spreadsheetId=SPREADSHEET_ID,
-        range=f"{sheet_name}!A2:D"  # Name | ID | Price | In Stock
-    ).execute()
-
-    values = result.get('values', [])
-    if not values:
-        print(f"No data found in sheet {sheet_name}")
-        return []
-
-    sellers = User.query.filter(User.location.ilike(sheet_name), User.role == 'seller').all()
-    if not sellers:
-        print(f"No sellers found for location: {sheet_name}")
-        return []
-
-    formatted_data = []
-
-    for row in values:
-        name = row[0] if len(row) > 0 else ''
-        identification_number = row[1] if len(row) > 1 else ''
-        price = float(row[2]) if len(row) > 2 and row[2] else 0.0
-        in_stock = 0
-        if len(row) > 3:
-            try:
-                in_stock = int(row[3]) if row[3] not in [None, '', 'null', 'None'] else 0
-            except ValueError:
-                in_stock = 0
-
-        formatted_data.append({
-            'name': name,
-            'identification_number': identification_number,
-            'price': price,
-            'in_stock': in_stock,
-        })
-
-    inventory_to_add = []
-
-    for product_data in formatted_data:
-        existing = Product.query.filter_by(
-            identification_number=product_data['identification_number'],
-            location=sheet_name
-        ).first()
-
-        if not existing:
-            # If product does not exist, create it with stock from the sheet
-            product = Product(
-                name=product_data['name'],
-                identification_number=product_data['identification_number'],
-                price=product_data['price'],
-                selling_price=None,
-                location=sheet_name,
-                in_stock=product_data['in_stock']
-            )
-            db.session.add(product)
-            db.session.commit()
-
-            for seller in sellers:
-                if seller.location == sheet_name:
-                    inventory = Inventory(
-                        product_id=product.id,
-                        seller_id=seller.id,
-                        quantity_in_stock=product_data['in_stock'],
-                        in_stock=product_data['in_stock']
-                    )
-                    inventory_to_add.append(inventory)
-        else:
-            # Product exists — update name, price, and stock directly from sheet
-            existing.name = product_data['name']
-            existing.price = product_data['price']
-            existing.in_stock = product_data['in_stock']
-            db.session.commit()
-
-            for seller in sellers:
-                if seller.location == sheet_name:
-                    existing_inventory = Inventory.query.filter_by(
-                        product_id=existing.id, seller_id=seller.id
-                    ).first()
-
-                    if not existing_inventory:
-                        inventory = Inventory(
-                            product_id=existing.id,
-                            seller_id=seller.id,
-                            quantity_in_stock=existing.in_stock,
-                            in_stock=existing.in_stock
-                        )
-                        inventory_to_add.append(inventory)
-
-    db.session.add_all(inventory_to_add)
-    db.session.commit()
-
-    print(f"✅ Imported {len(formatted_data)} products for {sheet_name}")
-    return formatted_data
-"""
-
+#CANT IMPORT NEW STOCK AFTER FIRST IMPORT ...NO 
 
 def get_google_sheet_data_by_location(sheet_name):
     service = authenticate_google_sheets()
@@ -529,6 +332,110 @@ def get_google_sheet_data_by_location(sheet_name):
     print(f"✅ Imported {len(formatted_data)} products for {sheet_name}")
     return formatted_data
 
+"""
+
+def get_google_sheet_data_by_location(sheet_name):
+    service = authenticate_google_sheets()
+    sheet = service.spreadsheets()
+
+    result = sheet.values().get(
+        spreadsheetId=SPREADSHEET_ID,
+        range=f"{sheet_name}!A2:D"
+    ).execute()
+
+    values = result.get('values', [])
+    if not values:
+        print(f"No data found in sheet {sheet_name}")
+        return []
+
+    sellers = User.query.filter(User.location.ilike(sheet_name), User.role == 'seller').all()
+    if not sellers:
+        print(f"No sellers found for location: {sheet_name}")
+        return []
+
+    formatted_data = []
+    for row in values:
+        name = row[0] if len(row) > 0 else ''
+        identification_number = row[1] if len(row) > 1 else ''
+        price = float(row[2]) if len(row) > 2 and row[2] else 0.0
+        in_stock = 0
+        if len(row) > 3:
+            try:
+                in_stock = int(row[3]) if row[3] not in [None, '', 'null', 'None'] else 0
+            except ValueError:
+                in_stock = 0
+
+        formatted_data.append({
+            'name': name,
+            'identification_number': identification_number,
+            'price': price,
+            'in_stock': in_stock,
+        })
+
+    inventory_to_add = []
+
+    for product_data in formatted_data:
+        existing = Product.query.filter_by(
+            identification_number=product_data['identification_number'],
+            location=sheet_name
+        ).first()
+
+        if not existing:
+            # Create new product
+            product = Product(
+                name=product_data['name'],
+                identification_number=product_data['identification_number'],
+                price=product_data['price'],
+                selling_price=None,
+                location=sheet_name,
+                in_stock=product_data['in_stock']
+            )
+            db.session.add(product)
+            db.session.commit()
+
+            for seller in sellers:
+                if seller.location == sheet_name:
+                    inventory = Inventory(
+                        product_id=product.id,
+                        seller_id=seller.id,
+                        quantity_in_stock=product_data['in_stock'],
+                        in_stock=product_data['in_stock']
+                    )
+                    inventory_to_add.append(inventory)
+
+        else:
+            # Update existing product - add to in_stock
+            existing.name = product_data['name']
+            existing.price = product_data['price']
+            existing.in_stock += product_data['in_stock']
+            db.session.commit()
+
+            for seller in sellers:
+                if seller.location == sheet_name:
+                    existing_inventory = Inventory.query.filter_by(
+                        product_id=existing.id,
+                        seller_id=seller.id
+                    ).first()
+
+                    if existing_inventory:
+                        # Add to seller inventory too
+                        existing_inventory.quantity_in_stock += product_data['in_stock']
+                        existing_inventory.in_stock += product_data['in_stock']
+                    else:
+                        # Create new seller inventory
+                        inventory = Inventory(
+                            product_id=existing.id,
+                            seller_id=seller.id,
+                            quantity_in_stock=product_data['in_stock'],
+                            in_stock=product_data['in_stock']
+                        )
+                        inventory_to_add.append(inventory)
+
+    db.session.add_all(inventory_to_add)
+    db.session.commit()
+
+    print(f"✅ Imported and updated {len(formatted_data)} products for {sheet_name}")
+    return formatted_data
 
 
 
