@@ -267,83 +267,50 @@
       const amountInput = document.getElementById(`amount-sold-${productId}`);
       const inStockInput = document.getElementById(`instock-${productId}`);
       const dateSoldInput = document.getElementById(`date-sold-${productId}`);
-    
-      // Check if all fields are filled
-      if (!qtyInput || !priceInput || !amountInput || !inStockInput || !dateSoldInput) {
-        autoAlert("🚫 Some required fields are missing. Please check your form.", 3000, "error");
+
+      // Check if all elements exist and have values
+      if (
+        !qtyInput?.value || 
+        !priceInput?.value || 
+        !amountInput?.value || 
+        !inStockInput?.value || 
+        !dateSoldInput?.value
+      ) {
+        autoAlert("🚫 Please fill in all required fields before sending the order.", 3000, "error");
         return;
       }
-    
-      // Validate if any field is empty or invalid
-      const qty = parseFloat(qtyInput.value);
-      const sellingPrice = parseFloat(priceInput.value);
-      const amount = parseFloat(amountInput.value);
-      const inStock = parseInt(inStockInput.value);
-    
-      if (isNaN(qty) || qty <= 0) {
-        autoAlert("🚫 Please enter a valid quantity.", 3000, "error");
-        return;
-      }
-    
-      if (isNaN(sellingPrice) || sellingPrice <= 0) {
-        autoAlert("🚫 Please enter a valid selling price.", 3000, "error");
-        return;
-      }
-    
-      if (isNaN(amount) || amount <= 0) {
-        autoAlert("🚫 Please enter a valid amount sold.", 3000, "error");
-        return;
-      }
-    
-      if (isNaN(inStock) || inStock < 0) {
-        autoAlert("🚫 Invalid stock value.", 3000, "error");
-        return;
-      }
-    
-      // Format the date if valid
-      const now = new Date();
-      const formattedDate = now.toISOString();
-      dateSoldInput.value = formattedDate;
-    
-      // If all validations pass, send the order
+
+      const data = {
+        product_id: productId,
+        quantity: qtyInput.value,
+        selling_price: priceInput.value,
+        amount: amountInput.value,
+        in_stock: inStockInput.value,
+        date_sold: new Date(dateSoldInput.value).toISOString()
+      };
+
       fetch('/send-order', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          product_id: productId,
-          quantity: qty,
-          selling_price: sellingPrice,
-          amount: amount,
-          in_stock: inStock,
-          date_sold: formattedDate
+        body: JSON.stringify(data)
+      })
+        .then(response => response.json())
+        .then(result => {
+          if (result.success) {
+            autoAlert("✅ Order submitted successfully!", 3000, "success");
+            // Optionally update UI here
+          } else {
+            autoAlert(`🚫 ${result.error}`, 3000, "error");
+          }
         })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          // Show the success alert on the page for mobile
-          const alertBox = document.getElementById("alertBox");
-          alertBox.style.display = 'block';
-          alertBox.textContent = "✅ Order successfully sent!";
-    
-          console.log("✅ Order sent successfully. Reloading in 10 seconds...");
-    
-          // Refresh page after 10 seconds
-          setTimeout(() => {
-            console.log("⏰ Reloading now...");
-            location.reload();
-          }, 10000);
-        } else {
-          alert(`⚠️ Error: ${data.message || "Out of Stock!! Stock Now!"}`);
-        }
-      })
-      .catch(error => {
-        console.error("🚨 Fetch error:", error);
-        autoAlert("🚨 Something went wrong. Please try again.", 3000, "error");
-      });
+        .catch(error => {
+          autoAlert("🚫 Failed to submit order. Please try again.", 3000, "error");
+          console.error("Error:", error);
+        });
     }
+
     </script>
     
   
