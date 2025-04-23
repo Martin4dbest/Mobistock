@@ -262,54 +262,54 @@
     
     // Send order data via fetch
     function sendOrder(productId) {
-      const qtyInput = document.getElementById(`order-qty-${productId}`);
-      const priceInput = document.getElementById(`selling-price-${productId}`);
-      const amountInput = document.getElementById(`amount-sold-${productId}`);
-      const inStockInput = document.getElementById(`instock-${productId}`);
-      const dateSoldInput = document.getElementById(`date-sold-${productId}`);
+  const qtyInput = document.getElementById(`order-qty-${productId}`);
+  const priceInput = document.getElementById(`selling-price-${productId}`);
+  const amountInput = document.getElementById(`amount-sold-${productId}`);
+  const inStockInput = document.getElementById(`instock-${productId}`);
+  const dateSoldInput = document.getElementById(`date-sold-${productId}`);
 
-      // Check if all elements exist and have values
-      if (
-        !qtyInput?.value || 
-        !priceInput?.value || 
-        !amountInput?.value || 
-        !inStockInput?.value || 
-        !dateSoldInput?.value
-      ) {
-        autoAlert("🚫 Please fill in all required fields before sending the order.", 3000, "error");
-        return;
+  // Check if all elements exist and have values
+  if (
+    !qtyInput?.value || 
+    !priceInput?.value || 
+    !amountInput?.value || 
+    !inStockInput?.value || 
+    !dateSoldInput?.value
+  ) {
+    autoAlert("🚫 Please fill in all required fields before sending the order.", 3000, "error");
+    return;
+  }
+
+  const data = {
+    product_id: productId,
+    quantity: qtyInput.value,
+    selling_price: priceInput.value,
+    amount: amountInput.value,
+    in_stock: inStockInput.value,
+    date_sold: new Date(dateSoldInput.value).toISOString()
+  };
+
+  fetch('/send-order', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  })
+    .then(response => response.json())
+    .then(result => {
+      if (result.success) {
+        autoAlert("✅ Order submitted successfully!", 3000, "success");
+        // Optionally update UI here
+      } else {
+        autoAlert(`🚫 ${result.error}`, 3000, "error");
       }
-
-      const data = {
-        product_id: productId,
-        quantity: qtyInput.value,
-        selling_price: priceInput.value,
-        amount: amountInput.value,
-        in_stock: inStockInput.value,
-        date_sold: new Date(dateSoldInput.value).toISOString()
-      };
-
-      fetch('/send-order', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      })
-        .then(response => response.json())
-        .then(result => {
-          if (result.success) {
-            autoAlert("✅ Order submitted successfully!", 3000, "success");
-            // Optionally update UI here
-          } else {
-            autoAlert(`🚫 ${result.error}`, 3000, "error");
-          }
-        })
-        .catch(error => {
-          autoAlert("🚫 Failed to submit order. Please try again.", 3000, "error");
-          console.error("Error:", error);
-        });
-    }
+    })
+    .catch(error => {
+      autoAlert("🚫 Failed to submit order. Please try again.", 3000, "error");
+      console.error("Error:", error);
+    });
+}
 
     </script>
     
