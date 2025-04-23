@@ -1072,10 +1072,26 @@ def delete_all_sales():
     return redirect(url_for('view_orders'))  # ✅ Use your actual route name
 
 
+@app.route('/delete-all-products', methods=['POST'])
+@login_required
+def delete_all_products():
+    if current_user.role != 'admin':
+        flash("You are not authorized to perform this action.", "danger")
+        return redirect(url_for('login'))
+
+    try:
+        Inventory.query.delete()  # Optional: clean up related inventory first
+        Product.query.delete()
+        db.session.commit()
+        flash("All products have been deleted.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error deleting products: {str(e)}", "danger")
+
+    return redirect(url_for('admin_dashboard'))
+
+
     
-
-
-
 
 """
 # Run the app
