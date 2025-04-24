@@ -110,7 +110,7 @@
               <th class="px-6 py-3">Action</th>
             </tr>
           </thead>
-          <tbody class="text-sm" id="product-list">
+          <tbody id="product-table-body" class="text-sm" data-extra-id="product-list">
             {% for product in products %}
             <tr class="border-b hover:bg-gray-50 product-row">
               <td class="p-2 font-medium">{{ product.name }}</td>
@@ -201,6 +201,8 @@
       {% endif %}
 
     </section>
+
+    <div id="pagination-container" class="text-center mt-4"></div>
   </main>
 
   
@@ -379,6 +381,80 @@
         });
       });
     </script>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const rows = document.querySelectorAll('.product-row');
+        const rowsPerPage = 20;
+        const tableBody = document.getElementById('product-table-body');
+        const totalPages = Math.ceil(rows.length / rowsPerPage);
+        let currentPage = 1;
+
+        function displayPage(page) {
+          tableBody.innerHTML = ''; // Clear existing rows
+          const start = (page - 1) * rowsPerPage;
+          const end = start + rowsPerPage;
+
+          rows.forEach((row, index) => {
+            if (index >= start && index < end) {
+              tableBody.appendChild(row);
+            }
+          });
+
+          renderPagination();
+        }
+
+        function renderPagination() {
+          let paginationHTML = '';
+
+          // Previous Button
+          paginationHTML += `
+            <button 
+              class="px-3 py-1 m-1 rounded ${currentPage === 1 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gray-700 text-white'}" 
+              onclick="changePage(${currentPage - 1})" 
+              ${currentPage === 1 ? 'disabled' : ''}
+            >
+              Prev
+            </button>
+          `;
+
+          // Page Number Buttons
+          for (let i = 1; i <= totalPages; i++) {
+            paginationHTML += `
+              <button 
+                class="px-3 py-1 m-1 rounded ${i === currentPage ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-800'}" 
+                onclick="changePage(${i})"
+              >
+                ${i}
+              </button>
+            `;
+          }
+
+          // Next Button
+          paginationHTML += `
+            <button 
+              class="px-3 py-1 m-1 rounded ${currentPage === totalPages ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-gray-700 text-white'}" 
+              onclick="changePage(${currentPage + 1})" 
+              ${currentPage === totalPages ? 'disabled' : ''}
+            >
+              Next
+            </button>
+          `;
+
+          document.getElementById('pagination-container').innerHTML = paginationHTML;
+        }
+
+        window.changePage = function (page) {
+          if (page < 1 || page > totalPages) return;
+          currentPage = page;
+          displayPage(page);
+        };
+
+        // Initial load
+        displayPage(currentPage);
+      });
+    </script>
+
 
     
   
