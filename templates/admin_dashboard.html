@@ -354,7 +354,7 @@ class="transition-all duration-300 ease-in-out bg-gray-900 text-white shadow-md 
           <th class="px-6 py-3">Actions</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody id="product-table-body">
         {% for product in products %}
         <tr class="border-b hover:bg-gray-200 transition product-row">
           <td class="px-6 py-3 font-medium text-gray-600">{{ product.name }}</td>
