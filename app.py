@@ -1090,6 +1090,10 @@ def delete_all_products():
 
     return redirect(url_for('admin_dashboard'))
 
+@app.route('/user-manual')
+def user_manual():
+    return render_template('user_manual.html')  
+
 
     
 
