@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,10 +9,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
 
-  <!-- Custom Glowing Link Style -->
   <style>
     .hover\:drop-shadow-glow:hover {
       filter: drop-shadow(0 0 6px #22c55e);
@@ -23,7 +20,7 @@
 
 <body class="bg-gray-100">
 
-  <!-- Back to Admin Dashboard Link -->
+  <!-- Back Link -->
   <div class="container my-4">
     <a href="{{ url_for('admin_dashboard') }}"
       class="text-lg font-semibold text-green-600 hover:text-green-700 hover:drop-shadow-glow transition-all duration-300 ease-in-out inline-flex items-center">
@@ -33,9 +30,7 @@
 
   <!-- Main Content -->
   <div class="container mx-auto bg-white px-4 py-3 rounded-lg shadow-md mb-6">
-    <h2 id="products-header" class="text-center text-2xl font-bold text-[#0a1f44] mb-4">
-      Products Sold
-    </h2>
+    <h2 class="text-center text-2xl font-bold text-[#0a1f44] mb-4">Products Sold</h2>
 
     <!-- Search Bar -->
     <div class="mb-4 text-center">
@@ -46,16 +41,14 @@
 
     <!-- Delete All Button -->
     <div class="text-end mb-3">
-      <form action="{{ url_for('delete_all_sales') }}" method="POST"
-        onsubmit="return confirm('Are you sure you want to delete all sales?');">
-        <button type="submit"
-          class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-all shadow">
+      <form action="{{ url_for('delete_all_sales') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete all sales?');">
+        <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-all shadow">
           <i class="bi bi-trash-fill me-2"></i> Delete All Sales
         </button>
       </form>
     </div>
 
-    <!-- Total Calculation Container (Initially Hidden) -->
+    <!-- Totals Section -->
     <div id="totals-container" class="my-4 text-center" style="display: none;">
       <h3 class="text-xl font-semibold">Totals for Filtered Products</h3>
       <p><strong>Total Quantity Sold:</strong> <span id="totalQuantity">0</span></p>
@@ -67,103 +60,110 @@
       <table class="table table-striped table-bordered table-hover w-full text-sm">
         <thead style="background-color: #0a1f44;" class="text-white text-center">
           <tr>
-            <th class="px-3 py-2">Product Name</th>
-            <th class="px-3 py-2">Identification Number</th>
-            <th class="px-3 py-2">Qty In Stock</th>
-            <th class="px-3 py-2">Quantity Sold</th>
-            <th class="px-3 py-2">Sold Price ($)</th>
-            <th class="px-3 py-2">Total Amount Sold ($)</th>
-            <th class="px-3 py-2">Date Sold</th>
+            <th>Product Name</th>
+            <th>Identification Number</th>
+            <th>Qty In Stock</th>
+            <th>Quantity Sold</th>
+            <th>Sold Price ($)</th>
+            <th>Total Amount Sold ($)</th>
+            <th>Date Sold</th>
           </tr>
         </thead>
         <tbody id="orderTableBody" class="text-center">
           {% for order in orders %}
           <tr class="hover:bg-gray-100">
-            <td class="px-3 py-2">{{ order.product.name }}</td>
-            <td class="px-3 py-2">{{ order.product.identification_number }}</td>
-            <td class="px-3 py-2">{{ order.product.in_stock }}</td>
-            <td class="px-3 py-2">{{ order.quantity }}</td>
-            <td class="px-3 py-2">{{ order.selling_price | round(2) }}</td>
-            <td class="px-3 py-2">{{ order.amount | round(2) }}</td>
-            <td class="px-3 py-2">
-              {% if order.date_sold %}
-              {{ order.date_sold.strftime('%Y-%m-%d %H:%M:%S') }}
-              {% else %}
-              No Date Sold
-              {% endif %}
-            </td>
+            <td>{{ order.product.name }}</td>
+            <td>{{ order.product.identification_number }}</td>
+            <td>{{ order.product.in_stock }}</td>
+            <td>{{ order.quantity }}</td>
+            <td>{{ order.selling_price | round(2) }}</td>
+            <td>{{ order.amount | round(2) }}</td>
+            <td>{% if order.date_sold %}{{ order.date_sold.strftime('%Y-%m-%d %H:%M:%S') }}{% else %}No Date Sold{% endif %}</td>
           </tr>
           {% else %}
-          <tr>
-            <td colspan="7" class="text-center py-4">No orders found.</td>
-          </tr>
+          <tr><td colspan="7" class="text-center py-4">No orders found.</td></tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- Bootstrap JS Bundle -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Chat Log -->
+  <div class="container my-4">
+    <h4 class="text-center font-bold mb-2">📢 Analytics Chat Log</h4>
+    <div id="analyticsChatLog" class="bg-white p-4 rounded-lg shadow space-y-2 max-h-64 overflow-y-auto text-sm">
+      <!-- Dynamic chat entries -->
+    </div>
+  </div>
 
   <!-- Show Totals Button -->
   <div class="text-center mt-4">
     <button id="show-totals-button" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-all"
-      onclick="calculateAndToggleTotals()">
-      Show Totals
-    </button>
+      onclick="calculateAndToggleTotals()">Show Totals</button>
   </div>
 
-  <!-- Script -->
+  <!-- Bootstrap Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Analytics Script -->
   <script>
+    function filterTable() {
+      const input = document.getElementById('searchInput');
+      const filter = input.value.toLowerCase();
+      const rows = document.getElementById('orderTableBody').getElementsByTagName('tr');
+      for (let row of rows) {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
+      }
+    }
+
+    function logToChat(message) {
+      const logContainer = document.getElementById("analyticsChatLog");
+      const entry = document.createElement("div");
+      entry.className = "bg-gray-100 p-2 rounded-md";
+      entry.textContent = `📊 ${new Date().toLocaleTimeString()}: ${message}`;
+      logContainer.appendChild(entry);
+    }
+
     function calculateAndToggleTotals() {
       const rows = document.getElementById('orderTableBody').getElementsByTagName('tr');
       let totalQuantity = 0;
       let totalAmount = 0;
+      let highestAmount = 0;
+      let topProduct = '';
 
-      // Loop through each visible row and sum up values
       for (let i = 0; i < rows.length; i++) {
-        if (rows[i].style.display === 'none') continue; // skip hidden rows (if any)
-
+        if (rows[i].style.display === 'none') continue;
         const cells = rows[i].getElementsByTagName('td');
+        const productName = cells[0].textContent.trim();
         const quantitySold = parseInt(cells[3].textContent.trim(), 10);
-        const totalAmountSold = parseFloat(cells[5].textContent.trim());
+        const amountSold = parseFloat(cells[5].textContent.trim());
 
         if (!isNaN(quantitySold)) totalQuantity += quantitySold;
-        if (!isNaN(totalAmountSold)) totalAmount += totalAmountSold;
+        if (!isNaN(amountSold)) {
+          totalAmount += amountSold;
+          if (amountSold > highestAmount) {
+            highestAmount = amountSold;
+            topProduct = productName;
+          }
+        }
       }
 
       displayTotals(totalQuantity, totalAmount);
+      logToChat(`Total quantity sold: ${totalQuantity}`);
+      logToChat(`Total revenue: $${totalAmount.toFixed(2)}`);
+      if (topProduct) logToChat(`Top performing product: ${topProduct} ($${highestAmount.toFixed(2)})`);
     }
 
     function displayTotals(totalQuantity, totalAmount) {
-      let totalsContainer = document.getElementById('totals-container');
-
-      if (!totalsContainer) {
-        totalsContainer = document.createElement('div');
-        totalsContainer.id = 'totals-container';
-        totalsContainer.className = 'my-4 text-center border p-4 rounded-lg bg-gray-200';
-        document.body.appendChild(totalsContainer);
-      }
-
-      // Toggle display or update content
-      if (totalsContainer.style.display === 'none' || totalsContainer.innerHTML === '') {
-        totalsContainer.innerHTML = `
-          <h3 class="text-xl font-semibold mb-2">Totals for Products Listed</h3>
-          <p><strong>Total Quantity Sold:</strong> ${totalQuantity}</p>
-          <p><strong>Total Amount Made ($):</strong> ${totalAmount.toFixed(2)}</p>
-        `;
-        totalsContainer.style.display = 'block';
-        document.getElementById('show-totals-button').textContent = 'Hide Totals';
-      } else {
-        totalsContainer.style.display = 'none';
-        document.getElementById('show-totals-button').textContent = 'Show Totals';
-      }
+      const totalsContainer = document.getElementById('totals-container');
+      document.getElementById('totalQuantity').textContent = totalQuantity;
+      document.getElementById('totalAmount').textContent = totalAmount.toFixed(2);
+      totalsContainer.style.display = totalsContainer.style.display === 'none' ? 'block' : 'none';
+      document.getElementById('show-totals-button').textContent =
+        totalsContainer.style.display === 'block' ? 'Hide Totals' : 'Show Totals';
     }
   </script>
 
-
-
 </body>
-
 </html>
