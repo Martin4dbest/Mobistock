@@ -216,7 +216,8 @@
     // Filter products based on the search input
     document.getElementById("search-input").addEventListener("input", function() {
       const searchQuery = this.value.toLowerCase();
-      const rows = document.querySelectorAll('.product-row');
+      const originalRows = Array.from(document.querySelectorAll('.product-row')).map(row => row.cloneNode(true));
+
     
       rows.forEach(row => {
         const productName = row.querySelector('td').textContent.toLowerCase();
@@ -384,20 +385,20 @@
 
     <script>
       document.addEventListener('DOMContentLoaded', function () {
-        const rows = document.querySelectorAll('.product-row');
+        const originalRows = Array.from(document.querySelectorAll('.product-row')).map(row => row.cloneNode(true));
         const rowsPerPage = 20;
         const tableBody = document.getElementById('product-table-body');
-        const totalPages = Math.ceil(rows.length / rowsPerPage);
+        const totalPages = Math.ceil(originalRows.length / rowsPerPage);
         let currentPage = 1;
-
+        
         function displayPage(page) {
           tableBody.innerHTML = ''; // Clear existing rows
           const start = (page - 1) * rowsPerPage;
           const end = start + rowsPerPage;
 
-          rows.forEach((row, index) => {
+          originalRows.forEach((row, index) => {
             if (index >= start && index < end) {
-              tableBody.appendChild(row);
+              tableBody.appendChild(row.cloneNode(true));
             }
           });
 
