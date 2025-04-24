@@ -199,10 +199,13 @@
         </td>
       </tr>
       {% endif %}
+      
+   <!-- Pagination Container -->
+
+    <div id="pagination-container" class="text-center mt-4"></div>
 
     </section>
 
-    <div id="pagination-container" class="text-center mt-4"></div>
   </main>
 
   
@@ -390,7 +393,7 @@
         const tableBody = document.getElementById('product-table-body');
         const totalPages = Math.ceil(originalRows.length / rowsPerPage);
         let currentPage = 1;
-        
+
         function displayPage(page) {
           tableBody.innerHTML = ''; // Clear existing rows
           const start = (page - 1) * rowsPerPage;
