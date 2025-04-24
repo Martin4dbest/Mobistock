@@ -363,6 +363,23 @@
       });
     }
     </script>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const stockInputs = document.querySelectorAll("input[id^='instock-']");
+
+        stockInputs.forEach(input => {
+          const stockValue = parseInt(input.value.trim());
+          if (!isNaN(stockValue) && stockValue <= 3) {
+            input.classList.add('text-red-600', 'font-semibold');
+            input.classList.remove('bg-gray-50');
+            input.classList.add('bg-red-100');
+            input.title = 'Low stock';
+          }
+        });
+      });
+    </script>
+
     
   
 </body>
