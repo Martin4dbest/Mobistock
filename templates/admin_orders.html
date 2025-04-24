@@ -138,8 +138,83 @@
     // Optional: Auto-refresh the page every 5 seconds
     setInterval(() => {
       location.reload();
-    }, 5000);
+    }, 10000);
   </script>
+
+<script>
+  // Function to calculate the total quantity sold and total amount made for visible rows
+  function calculateTotalsForVisibleRows() {
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const rows = document.getElementById('orderTableBody').getElementsByTagName('tr');
+    let totalQuantity = 0;
+    let totalAmount = 0;
+
+    // Loop through each row
+    for (let i = 0; i < rows.length; i++) {
+      const cells = rows[i].getElementsByTagName('td');
+      const productName = cells[0].textContent.toLowerCase(); // Product Name (1st column)
+      const dateSold = cells[6].textContent.trim(); // Date Sold (last column)
+      const quantitySold = parseInt(cells[3].textContent.trim(), 10); // Quantity Sold (4th column)
+      const totalAmountSold = parseFloat(cells[5].textContent.trim()); // Total Amount Sold (6th column)
+
+      // If the row matches the search input and it's visible (not hidden)
+      if (productName.includes(searchInput) && rows[i].style.display !== 'none') {
+        totalQuantity += quantitySold;
+        totalAmount += totalAmountSold;
+      }
+    }
+
+    // Display the calculated totals
+    displayTotals(totalQuantity, totalAmount);
+  }
+
+  // Function to display the calculated totals
+  function displayTotals(totalQuantity, totalAmount) {
+    const totalsContainer = document.getElementById('totals-container');
+    if (!totalsContainer) {
+      // If no totals container exists, create it
+      const newTotalsContainer = document.createElement('div');
+      newTotalsContainer.id = 'totals-container';
+      newTotalsContainer.classList.add('my-4', 'text-center');
+      document.body.appendChild(newTotalsContainer);
+    }
+
+    // Update the totals content
+    const totalsHTML = `
+      <h3 class="text-xl font-semibold">Totals for Filtered Products</h3>
+      <p><strong>Total Quantity Sold:</strong> ${totalQuantity}</p>
+      <p><strong>Total Amount Made ($):</strong> ${totalAmount.toFixed(2)}</p>
+    `;
+
+    document.getElementById('totals-container').innerHTML = totalsHTML;
+  }
+
+    // Function to filter the table and update totals dynamically
+    function filterTable() {
+      const searchInput = document.getElementById('searchInput').value.toLowerCase();
+      const rows = document.getElementById('orderTableBody').getElementsByTagName('tr');
+
+      // Loop through each row and apply filtering based on the search input
+      for (let i = 0; i < rows.length; i++) {
+        const cells = rows[i].getElementsByTagName('td');
+        const productName = cells[0].textContent.toLowerCase(); // Product Name (1st column)
+
+        // Show or hide the row based on whether it matches the search input
+        if (productName.includes(searchInput)) {
+          rows[i].style.display = ''; // Show row
+        } else {
+          rows[i].style.display = 'none'; // Hide row
+        }
+      }
+
+      // Recalculate totals for visible rows
+      calculateTotalsForVisibleRows();
+    }
+
+    // Call filterTable function on search input change
+    document.getElementById('searchInput').addEventListener('input', filterTable);
+  </script>
+
 
 </body>
 
