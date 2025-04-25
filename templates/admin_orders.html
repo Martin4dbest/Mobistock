@@ -29,7 +29,7 @@
   </div>
 
   <!-- Main Content -->
-    <h2 id="products-heading" class="text-center text-2xl font-bold text-[#0a1f44] mb-4">Products Sold at</h2>
+    <h2 id="products-heading" class="text-center text-2xl font-bold text-[#0a1f44] mb-4">Products Sold</h2>
 
 
     <!-- Search Bar -->
@@ -66,6 +66,7 @@
             <th>Quantity Sold</th>
             <th>Sold Price ($)</th>
             <th>Total Amount Sold ($)</th>
+            <th>Seller</th> <!-- 👈 Added -->
             <th>Date Sold</th>
           </tr>
         </thead>
@@ -78,6 +79,7 @@
             <td>{{ order.quantity }}</td>
             <td>{{ order.selling_price | round(2) }}</td>
             <td>{{ order.amount | round(2) }}</td>
+            <td>{{ order.seller.username }}</td>
             <td>{% if order.date_sold %}{{ order.date_sold.strftime('%Y-%m-%d %H:%M:%S') }}{% else %}No Date Sold{% endif %}</td>
           </tr>
           {% else %}
@@ -175,7 +177,7 @@
       // Update the heading if location exists
       if (location) {
         const heading = document.getElementById('products-heading');
-        heading.textContent = `Products Sold - ${location}`;
+        heading.textContent = `Products Sold at- ${location}`;
       }
     });
   </script>
