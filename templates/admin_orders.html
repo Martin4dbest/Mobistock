@@ -29,56 +29,66 @@
   </div>
 
   <!-- Main Content -->
-  <h2 id="products-heading" class="text-center text-2xl font-bold text-[#0a1f44] mb-4">Products Sold</h2>
+    <h2 id="products-heading" class="text-center text-2xl font-bold text-[#0a1f44] mb-4">Products Sold</h2>
 
-  <!-- Search Bar -->
-  <div class="mb-4 text-center">
-    <input type="text" id="searchInput"
-      class="form-control w-full md:w-1/2 mx-auto p-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-400"
-      placeholder="Search Orders" onkeyup="filterTable()" />
-  </div>
 
-  <!-- Delete All Button -->
-  <div class="text-end mb-3">
-    <form action="{{ url_for('delete_all_sales') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete all sales?');">
-      <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-all shadow">
-        <i class="bi bi-trash-fill me-2"></i> Delete All Sales
-      </button>
-    </form>
-  </div>
+    <!-- Search Bar -->
+    <div class="mb-4 text-center">
+      <input type="text" id="searchInput"
+        class="form-control w-full md:w-1/2 mx-auto p-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-400"
+        placeholder="Search Orders" onkeyup="filterTable()" />
+    </div>
 
-  <!-- Orders Table -->
-  <div class="overflow-x-auto">
-    <table class="table table-striped table-bordered table-hover w-full text-sm">
-      <thead style="background-color: #0a1f44;" class="text-white text-center">
-        <tr>
-          <th>Product Name</th>
-          <th>Identification Number</th>
-          <th>Qty In Stock</th>
-          <th>Quantity Sold</th>
-          <th>Sold Price ($)</th>
-          <th>Total Amount Sold ($)</th>
-          <th>Date Sold</th>
-          <th>Seller Name</th> <!-- New column for seller -->
-        </tr>
-      </thead>
-      <tbody id="orderTableBody" class="text-center">
-        {% for order in orders %}
-        <tr class="hover:bg-gray-100">
-          <td>{{ order.product.name }}</td>
-          <td>{{ order.product.identification_number }}</td>
-          <td>{{ order.product.in_stock }}</td>
-          <td>{{ order.quantity }}</td>
-          <td>{{ order.selling_price | round(2) }}</td>
-          <td>{{ order.amount | round(2) }}</td>
-          <td>{% if order.date_sold %}{{ order.date_sold.strftime('%Y-%m-%d %H:%M:%S') }}{% else %}No Date Sold{% endif %}</td>
-          <td>{{ order.seller_name }}</td> <!-- Display seller name -->
-        </tr>
-        {% else %}
-        <tr><td colspan="8" class="text-center py-4">No orders found.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <!-- Delete All Button -->
+    <div class="text-end mb-3">
+      <form action="{{ url_for('delete_all_sales') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete all sales?');">
+        <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-all shadow">
+          <i class="bi bi-trash-fill me-2"></i> Delete All Sales
+        </button>
+      </form>
+    </div>
+
+    <!-- Totals Section -->
+    <div id="totals-container" class="my-4 text-center" style="display: none;">
+      <h3 class="text-xl font-semibold">Totals for Filtered Products</h3>
+      <p><strong>Total Quantity Sold:</strong> <span id="totalQuantity">0</span></p>
+      <p><strong>Total Amount Made ($):</strong> $<span id="totalAmount">0.00</span></p>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="overflow-x-auto">
+      <table class="table table-striped table-bordered table-hover w-full text-sm">
+        <thead style="background-color: #0a1f44;" class="text-white text-center">
+          <tr>
+            <th>Product Name</th>
+            <th>Identification Number</th>
+            <th>Qty In Stock</th>
+            <th>Quantity Sold</th>
+            <th>Sold Price ($)</th>
+            <th>Total Amount Sold ($)</th>
+            <th>Sales Executive</th>
+            <th>Date Sold</th>
+          </tr>
+        </thead>
+        <tbody id="orderTableBody" class="text-center">
+          {% for order in orders %}
+          <tr class="hover:bg-gray-100">
+            <td>{{ order.product.name }}</td>
+            <td>{{ order.product.identification_number }}</td>
+            <td>{{ order.product.in_stock }}</td>
+            <td>{{ order.quantity }}</td>
+            <td>{{ order.selling_price | round(2) }}</td>
+            <td>{{ order.seller.name }}</td> <!-- Display seller name -->
+            <td>{{ order.amount | round(2) }}</td>
+
+            <td>{% if order.date_sold %}{{ order.date_sold.strftime('%Y-%m-%d %H:%M:%S') }}{% else %}No Date Sold{% endif %}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="text-center py-4">No orders found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- Chat Log -->
@@ -158,6 +168,7 @@
     }
   </script>
 
+
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       // Get the value of the "location" query parameter
@@ -171,6 +182,7 @@
       }
     });
   </script>
+
 
 </body>
 </html>
