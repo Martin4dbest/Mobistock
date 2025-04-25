@@ -74,7 +74,8 @@ class Inventory(db.Model):
 
     # Relationships
     seller = db.relationship('User', backref='inventory_items')
-"""
+
+
 # Define Order model
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -86,27 +87,7 @@ class Order(db.Model):
     in_stock = db.Column(db.Integer, nullable=False)
     date_sold = db.Column(db.DateTime, nullable=False)
 
-"""
-class Order(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
-    inventory_id = db.Column(db.Integer, db.ForeignKey('inventory.id'), nullable=True)  # new column
-    quantity = db.Column(db.Integer, nullable=False)
-    status = db.Column(db.String(50), default='pending')
-    selling_price = db.Column(db.Float, nullable=True)
-    amount = db.Column(db.Float, nullable=True)
-    in_stock = db.Column(db.Integer, nullable=False)
-    date_sold = db.Column(db.DateTime, nullable=False)
-
-    product = db.relationship('Product', backref='orders')
-    inventory = db.relationship('Inventory', backref='orders', lazy='joined')
-
-    @property
-    def seller(self):
-        if self.inventory:
-            return self.inventory.seller
-        return None
-
+    
 
 
 # Define User model for authentication (admin/seller)

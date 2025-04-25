@@ -78,7 +78,6 @@
             <td>{{ order.product.in_stock }}</td>
             <td>{{ order.quantity }}</td>
             <td>{{ order.selling_price | round(2) }}</td>
-            <td>{{ order.seller.name }}</td> <!-- Display seller name -->
             <td>{{ order.amount | round(2) }}</td>
 
             <td>{% if order.date_sold %}{{ order.date_sold.strftime('%Y-%m-%d %H:%M:%S') }}{% else %}No Date Sold{% endif %}</td>
