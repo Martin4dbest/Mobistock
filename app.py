@@ -851,7 +851,6 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('index'))
 
-
 @app.route('/order/<int:product_id>', methods=['POST'])
 @login_required
 def place_order(product_id):
@@ -861,51 +860,39 @@ def place_order(product_id):
     quantity = int(request.form['quantity'])
     selling_price = float(request.form['selling_price'])
 
-    # Fetch the product and inventory details
     product = Product.query.get(product_id)
-    inventory = Inventory.query.filter_by(product_id=product_id, seller_id=current_user.id).first()
+    seller_inventory = Inventory.query.filter_by(product_id=product_id, seller_id=current_user.id).first()
 
-    if not product or not inventory:
+    if not product or not seller_inventory:
         flash('Product or inventory not found.', 'danger')
         return redirect(url_for('seller_dashboard'))
 
-    # Check if there is enough stock
-    if inventory.quantity_in_stock >= quantity:
-        # Deduct stock from the seller's inventory
-        inventory.quantity_in_stock -= quantity
-        inventory.quantity_sold += quantity
-        db.session.commit()
+    # Check if there is enough stock in seller's inventory
+    if seller_inventory.quantity_in_stock < quantity:
+        flash(f'Not enough stock. You have {seller_inventory.quantity_in_stock} units left.', 'danger')
+        return redirect(url_for('seller_dashboard'))
 
-        # Update global product stock
-        product.in_stock -= quantity
-        db.session.commit()
+    # Deduct stock from seller inventory
+    seller_inventory.quantity_in_stock -= quantity
+    seller_inventory.quantity_sold += quantity
+    db.session.add(seller_inventory)
 
-        total_amount = quantity * selling_price
+    # Update order
+    total_amount = quantity * selling_price
+    new_order = Order(
+        product_id=product_id,
+        quantity=quantity,
+        status="completed",
+        selling_price=selling_price,
+        amount=total_amount,
+        seller_id=current_user.id
+    )
+    db.session.add(new_order)
 
-        # Create the new order
-        new_order = Order(
-            product_id=product_id,
-            quantity=quantity,
-            status="completed",
-            selling_price=selling_price,
-            amount=total_amount,
-            seller_id=current_user.id 
-        )
-        db.session.add(new_order)
-        db.session.commit()
+    db.session.commit()
 
-        # Update admin's inventory with reduced stock
-        admin_inventory = Inventory.query.filter_by(product_id=product_id).all()
-        for inventory in admin_inventory:
-            inventory.in_stock = inventory.quantity_in_stock  # Reflect the reduced stock for admin
-        db.session.commit()
-
-        flash(f"Order placed successfully for {product.name}!", 'success')
-    else:
-        flash('Not enough stock available.', 'danger')
-
+    flash(f"Order placed successfully for {product.name}!", 'success')
     return redirect(url_for('seller_dashboard'))
-
 
 
 @app.route('/register', methods=['GET', 'POST'])
