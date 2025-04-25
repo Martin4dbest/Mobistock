@@ -177,73 +177,72 @@ class="transition-all duration-300 ease-in-out bg-gray-900 text-white shadow-md 
     </a>
   </div>
   
+<!-- 
+<div x-data="{ openExportDropdown: false }" class="relative">
   
-
-  <div x-data="{ openExportDropdown: false }" class="relative">
-    <!-- Export Button -->
-    <button @click="openExportDropdown = !openExportDropdown"
-            class="w-full flex items-center justify-between text-indigo-300 hover:text-indigo-500 transition-colors">
-      <span class="flex items-center space-x-2">
-        <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" stroke-width="2"
-             viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round"
-                d="M12 4v12m0 0l-3-3m3 3l3-3m-6 5h6a2 2 0 002-2V7a2 2 0 00-2-2h-6a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-        </svg>
-        <span class="font-medium">Export Stock</span>
-      </span>
-      <svg :class="{ 'rotate-180': openExportDropdown }" class="ml-2 w-4 h-4 transition-transform text-indigo-400"
-           fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M19 9l-7 7-7-7"/>
+  <button @click="openExportDropdown = !openExportDropdown"
+          class="w-full flex items-center justify-between text-indigo-300 hover:text-indigo-500 transition-colors">
+    <span class="flex items-center space-x-2">
+      <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" stroke-width="2"
+           viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M12 4v12m0 0l-3-3m3 3l3-3m-6 5h6a2 2 0 002-2V7a2 2 0 00-2-2h-6a2 2 0 00-2 2v10a2 2 0 002 2z"/>
       </svg>
-    </button>
-  
-    <!-- Dropdown Form -->
-    <div x-show="openExportDropdown"
-         @click.away="openExportDropdown = false"
-         class="absolute z-50 bg-white text-black p-4 mt-2 rounded shadow w-[300px]">
-      <form method="get" action="{{ url_for('export_stock_history_excel') }}">
-        <div class="mb-2">
-          <label class="block text-sm font-semibold">Start Date</label>
-          <input type="date" class="form-control w-full" name="start_date">
-        </div>
-        <div class="mb-2">
-          <label class="block text-sm font-semibold">End Date</label>
-          <input type="date" class="form-control w-full" name="end_date">
-        </div>
-        <div class="mb-2">
-          <label class="block text-sm font-semibold">Admin</label>
-          <select class="form-control w-full" name="admin_id">
-            <option value="">All Admins</option>
-            {% for admin in admins %}
-              <option value="{{ admin.id }}">{{ admin.username }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="mb-2">
-          <label class="block text-sm font-semibold">Product</label>
-          <select class="form-control w-full" name="product_id">
-            <option value="">All Products</option>
-            {% for product in products %}
-              <option value="{{ product.id }}">{{ product.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="mb-2">
-          <label class="block text-sm font-semibold">Location</label>
-          <input type="text" class="form-control w-full" name="location" placeholder="e.g. Lagos">
-        </div>
-        <button type="submit" class="btn btn-success w-full mt-2">Export</button>
-      </form>
-    </div>
+      <span class="font-medium">Export Stock</span>
+    </span>
+    <svg :class="{ 'rotate-180': openExportDropdown }" class="ml-2 w-4 h-4 transition-transform text-indigo-400"
+         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M19 9l-7 7-7-7"/>
+    </svg>
+  </button>
+
+  <div x-show="openExportDropdown"
+       @click.away="openExportDropdown = false"
+       class="absolute z-50 bg-white text-black p-4 mt-2 rounded shadow w-[300px]">
+    <form method="get" action="{{ url_for('export_stock_history_excel') }}">
+      <div class="mb-2">
+        <label class="block text-sm font-semibold">Start Date</label>
+        <input type="date" class="form-control w-full" name="start_date">
+      </div>
+      <div class="mb-2">
+        <label class="block text-sm font-semibold">End Date</label>
+        <input type="date" class="form-control w-full" name="end_date">
+      </div>
+      <div class="mb-2">
+        <label class="block text-sm font-semibold">Admin</label>
+        <select class="form-control w-full" name="admin_id">
+          <option value="">All Admins</option>
+          {% for admin in admins %}
+            <option value="{{ admin.id }}">{{ admin.username }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-2">
+        <label class="block text-sm font-semibold">Product</label>
+        <select class="form-control w-full" name="product_id">
+          <option value="">All Products</option>
+          {% for product in products %}
+            <option value="{{ product.id }}">{{ product.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-2">
+        <label class="block text-sm font-semibold">Location</label>
+        <input type="text" class="form-control w-full" name="location" placeholder="e.g. Lagos">
+      </div>
+      <button type="submit" class="btn btn-success w-full mt-2">Export</button>
+    </form>
   </div>
-      
-        <!-- 🔴 Delete All Products Button - placed right before Logout -->
-        <form action="{{ url_for('delete_all_products') }}" method="POST"
-        onsubmit="return confirm('Are you sure you want to delete ALL products? This action cannot be undone.')" class="mt-4">
+</div>
+-->
+
+  <!-- 🔴 Delete All Products Button - placed right before Logout -->
+ <form action="{{ url_for('delete_all_products') }}" method="POST"
+    onsubmit="return confirm('Are you sure you want to delete ALL products? This action cannot be undone.')" class="mt-4">
     <button type="submit"
-            class="w-full text-left px-4 py-2 text-sm font-semibold text-red-500 hover:text-white hover:bg-red-600 transition duration-300 rounded-md">
-      🗑️ Delete All Products
+    class="w-full text-left px-4 py-2 text-sm font-semibold text-red-500 hover:text-white hover:bg-red-600 transition duration-300 rounded-md">
+   🗑️ Delete All Products
     </button>
 </form>
     
