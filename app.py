@@ -75,7 +75,7 @@ class Inventory(db.Model):
     # Relationships
     seller = db.relationship('User', backref='inventory_items')
 
-
+"""
 # Define Order model
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -86,6 +86,22 @@ class Order(db.Model):
     amount = db.Column(db.Float, nullable=True)
     in_stock = db.Column(db.Integer, nullable=False)
     date_sold = db.Column(db.DateTime, nullable=False)
+
+"""
+
+class Order(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.String(50), default='pending')
+    selling_price = db.Column(db.Float, nullable=True)
+    amount = db.Column(db.Float, nullable=True)
+    in_stock = db.Column(db.Integer, nullable=False)
+    date_sold = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    
+    seller_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Add this
+    seller = db.relationship('User', foreign_keys=[seller_id])  # Optional: to access order.seller.username
+
 
     
 
@@ -788,7 +804,8 @@ def seller_dashboard():
                     product_id=product.id,
                     quantity=quantity,
                     selling_price=selling_price,
-                    amount=selling_price * quantity
+                    amount=selling_price * quantity,
+                    seller_id=current_user.id 
                 )
                 db.session.add(order)
 
