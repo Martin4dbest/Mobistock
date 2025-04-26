@@ -85,6 +85,8 @@ class Order(db.Model):
     amount = db.Column(db.Float, nullable=True)
     in_stock = db.Column(db.Integer, nullable=False)
     date_sold = db.Column(db.DateTime, nullable=False)
+    seller_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
 
 
 # Define User model for authentication (admin/seller)
