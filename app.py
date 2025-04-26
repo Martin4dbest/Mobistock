@@ -75,7 +75,7 @@ class Inventory(db.Model):
     # Relationships
     seller = db.relationship('User', backref='inventory_items')
 
-"""
+
 # Define Order model
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -86,24 +86,6 @@ class Order(db.Model):
     amount = db.Column(db.Float, nullable=True)
     in_stock = db.Column(db.Integer, nullable=False)
     date_sold = db.Column(db.DateTime, nullable=False)
-
-"""
-
-class Order(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
-    quantity = db.Column(db.Integer, nullable=False)
-    status = db.Column(db.String(50), default='pending')
-    selling_price = db.Column(db.Float, nullable=True)
-    amount = db.Column(db.Float, nullable=True)
-    in_stock = db.Column(db.Integer, nullable=False)
-    date_sold = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    
-    seller_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Add this
-    seller = db.relationship('User', foreign_keys=[seller_id])  # Optional: to access order.seller.username
-
-
-    
 
 
 # Define User model for authentication (admin/seller)
@@ -804,8 +786,7 @@ def seller_dashboard():
                     product_id=product.id,
                     quantity=quantity,
                     selling_price=selling_price,
-                    amount=selling_price * quantity,
-                    seller_id=current_user.id 
+                    amount=selling_price * quantity
                 )
                 db.session.add(order)
 
@@ -851,6 +832,7 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('index'))
 
+
 @app.route('/order/<int:product_id>', methods=['POST'])
 @login_required
 def place_order(product_id):
@@ -860,39 +842,50 @@ def place_order(product_id):
     quantity = int(request.form['quantity'])
     selling_price = float(request.form['selling_price'])
 
+    # Fetch the product and inventory details
     product = Product.query.get(product_id)
-    seller_inventory = Inventory.query.filter_by(product_id=product_id, seller_id=current_user.id).first()
+    inventory = Inventory.query.filter_by(product_id=product_id, seller_id=current_user.id).first()
 
-    if not product or not seller_inventory:
+    if not product or not inventory:
         flash('Product or inventory not found.', 'danger')
         return redirect(url_for('seller_dashboard'))
 
-    # Check if there is enough stock in seller's inventory
-    if seller_inventory.quantity_in_stock < quantity:
-        flash(f'Not enough stock. You have {seller_inventory.quantity_in_stock} units left.', 'danger')
-        return redirect(url_for('seller_dashboard'))
+    # Check if there is enough stock
+    if inventory.quantity_in_stock >= quantity:
+        # Deduct stock from the seller's inventory
+        inventory.quantity_in_stock -= quantity
+        inventory.quantity_sold += quantity
+        db.session.commit()
 
-    # Deduct stock from seller inventory
-    seller_inventory.quantity_in_stock -= quantity
-    seller_inventory.quantity_sold += quantity
-    db.session.add(seller_inventory)
+        # Update global product stock
+        product.in_stock -= quantity
+        db.session.commit()
 
-    # Update order
-    total_amount = quantity * selling_price
-    new_order = Order(
-        product_id=product_id,
-        quantity=quantity,
-        status="completed",
-        selling_price=selling_price,
-        amount=total_amount,
-        seller_id=current_user.id
-    )
-    db.session.add(new_order)
+        total_amount = quantity * selling_price
 
-    db.session.commit()
+        # Create the new order
+        new_order = Order(
+            product_id=product_id,
+            quantity=quantity,
+            status="completed",
+            selling_price=selling_price,
+            amount=total_amount
+        )
+        db.session.add(new_order)
+        db.session.commit()
 
-    flash(f"Order placed successfully for {product.name}!", 'success')
+        # Update admin's inventory with reduced stock
+        admin_inventory = Inventory.query.filter_by(product_id=product_id).all()
+        for inventory in admin_inventory:
+            inventory.in_stock = inventory.quantity_in_stock  # Reflect the reduced stock for admin
+        db.session.commit()
+
+        flash(f"Order placed successfully for {product.name}!", 'success')
+    else:
+        flash('Not enough stock available.', 'danger')
+
     return redirect(url_for('seller_dashboard'))
+
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -938,7 +931,6 @@ def register():
     return render_template('register.html', ghana_cities=ghana_cities)
 
 
-
 @app.route('/send-order', methods=['POST'])
 def send_order():
     data = request.get_json()
@@ -947,41 +939,37 @@ def send_order():
     selling_price = float(data.get('selling_price', 0))
     amount = float(data.get('amount', 0))
     date_sold = data.get('date_sold')
-    in_stock = int(data.get('in_stock', 0))  # The initial in_stock from frontend input
 
     try:
-        # Retrieve the product from the database
+        # Fetch the product from the database
         product = Product.query.get(product_id)
 
         if not product:
             return jsonify({'success': False, 'error': 'Product not found'}), 404
 
-        # Calculate the new remaining stock
+        # Calculate new remaining stock
         new_in_stock = product.in_stock - quantity
 
-        # Ensure the stock doesn't go below zero
         if new_in_stock < 0:
             return jsonify({'success': False, 'error': 'Not enough stock available'}), 400
 
-        # Update the product's stock in the database
+        # Update stock
         product.in_stock = new_in_stock
-        db.session.commit()  # Commit the stock update
+        db.session.commit()  # Commit stock change
 
-        # Create a new order
+        # Save the order
         order = Order(
             product_id=product_id,
             quantity=quantity,
             selling_price=selling_price,
             amount=amount,
             date_sold=datetime.strptime(date_sold, '%Y-%m-%dT%H:%M:%S.%fZ'),
-            in_stock=new_in_stock  # Include the updated stock in the order (optional)
+            in_stock=new_in_stock  # Optional: for order history reference
         )
-
-        # Add the order to the session and commit
         db.session.add(order)
         db.session.commit()
 
-        return jsonify({'success': True, 'remaining_stock': new_in_stock}), 200  # Include remaining stock in response
+        return jsonify({'success': True, 'remaining_stock': new_in_stock}), 200
 
     except Exception as e:
         print("Error saving order:", e)
@@ -1096,10 +1084,6 @@ def delete_all_products():
         flash(f"Error deleting products: {str(e)}", "danger")
 
     return redirect(url_for('admin_dashboard'))
-
-@app.route('/user-manual')
-def user_manual():
-    return render_template('user_manual.html')  
 
 
     

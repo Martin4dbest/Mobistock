@@ -216,23 +216,23 @@
   </footer>
   
   <script>
-      // Filter products based on the search input
+    // Filter products based on the search input
     document.getElementById("search-input").addEventListener("input", function() {
       const searchQuery = this.value.toLowerCase();
-      
-      // Get the original rows (make sure to grab all the product rows first)
-      const originalRows = Array.from(document.querySelectorAll('.product-row'));
+      const originalRows = Array.from(document.querySelectorAll('.product-row')).map(row => row.cloneNode(true));
 
-      originalRows.forEach(row => {
-        const productName = row.querySelector('td').textContent.toLowerCase(); // Get the product name text from the first <td>
-
+    
+      rows.forEach(row => {
+        const productName = row.querySelector('td').textContent.toLowerCase();
+    
         if (productName.includes(searchQuery)) {
-          row.style.display = ''; // Show matching rows
+          row.style.display = '';
         } else {
-          row.style.display = 'none'; // Hide non-matching rows
+          row.style.display = 'none';
         }
       });
     });
+    
     // Calculate amount sold and update stock
     function calculateAmountSold(productId) {
       const qtyInput = document.getElementById(`order-qty-${productId}`);
