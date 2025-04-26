@@ -928,9 +928,7 @@ def register():
             return redirect(url_for('admin_dashboard'))
 
     return render_template('register.html', ghana_cities=ghana_cities)
-from flask import request, jsonify
-from datetime import datetime
-from models import db, Product, Order  # Adjust based on your actual import paths
+
 
 @app.route('/send-order', methods=['POST'])
 def send_order():
