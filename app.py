@@ -928,54 +928,62 @@ def register():
             return redirect(url_for('admin_dashboard'))
 
     return render_template('register.html', ghana_cities=ghana_cities)
+from flask import request, jsonify
+from datetime import datetime
+from models import db, Product, Order  # Adjust based on your actual import paths
 
 @app.route('/send-order', methods=['POST'])
 def send_order():
     data = request.get_json()
+
     product_id = data.get('product_id')
-    quantity = int(data.get('quantity', 0))
-    selling_price = float(data.get('selling_price', 0))
-    amount = float(data.get('amount', 0))
+    quantity = data.get('quantity')
+    selling_price = data.get('selling_price')
+    amount = data.get('amount')
     date_sold = data.get('date_sold')
-    seller_id = data.get('seller_id')  # Add seller_id to the data
+    seller_id = data.get('seller_id')
+
+    # Validate required fields
+    if not all([product_id, quantity, selling_price, amount, date_sold, seller_id]):
+        return jsonify({'success': False, 'error': 'All fields including seller_id are required'}), 400
 
     try:
-        # Fetch the product from the database
-        product = Product.query.get(product_id)
+        # Convert data types
+        quantity = int(quantity)
+        selling_price = float(selling_price)
+        amount = float(amount)
+        date_sold_dt = datetime.strptime(date_sold, '%Y-%m-%dT%H:%M:%S.%fZ')
 
+        # Get product
+        product = Product.query.get(product_id)
         if not product:
             return jsonify({'success': False, 'error': 'Product not found'}), 404
 
-        # Check that seller_id is provided
-        if not seller_id:
-            return jsonify({'success': False, 'error': 'Seller ID is required'}), 400
-
-        # Calculate new remaining stock
-        new_in_stock = product.in_stock - quantity
-
-        if new_in_stock < 0:
+        # Check stock availability
+        if product.in_stock < quantity:
             return jsonify({'success': False, 'error': 'Not enough stock available'}), 400
 
         # Update stock
-        product.in_stock = new_in_stock
-        db.session.commit()  # Commit stock change
+        product.in_stock -= quantity
+        db.session.commit()
 
-        # Save the order
+        # Create order
         order = Order(
             product_id=product_id,
             quantity=quantity,
             selling_price=selling_price,
             amount=amount,
-            date_sold=datetime.strptime(date_sold, '%Y-%m-%dT%H:%M:%S.%fZ'),
-            in_stock=new_in_stock,  # Optional: for order history reference
-            seller_id=seller_id  # Add seller_id here
+            date_sold=date_sold_dt,
+            in_stock=product.in_stock,
+            seller_id=seller_id
         )
         db.session.add(order)
         db.session.commit()
 
-        return jsonify({'success': True, 'remaining_stock': new_in_stock}), 200
+        return jsonify({'success': True, 'remaining_stock': product.in_stock}), 200
 
     except Exception as e:
+        db.session.rollback()
         print("Error saving order:", e)
         return jsonify({'success': False, 'error': str(e)}), 500
 
