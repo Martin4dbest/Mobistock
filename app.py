@@ -87,6 +87,9 @@ class Order(db.Model):
     date_sold = db.Column(db.DateTime, nullable=False)
     seller_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
+    # ✅ NEW RELATIONSHIP
+    seller = db.relationship('User', backref='orders')
+
 
 
 # Define User model for authentication (admin/seller)
