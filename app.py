@@ -978,7 +978,8 @@ def send_order():
             amount=amount,
             date_sold=date_sold_dt,
             in_stock=product.in_stock,
-            seller_id=seller_id
+            #seller_id=seller_id
+            seller_id=current_user.id
         )
         db.session.add(order)
         db.session.commit()
