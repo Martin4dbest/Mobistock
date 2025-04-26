@@ -8,7 +8,11 @@
   <!-- Tailwind & AlpineJS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  
 </head>
+
+
 
 <body class="bg-gray-100 min-h-screen flex flex-col font-sans">
 
@@ -205,6 +209,7 @@
       <div id="pagination-container" class="text-center mt-4"></div>
 
     </section>
+    
 
 
   </main>
@@ -215,7 +220,16 @@
   <footer class="bg-gray-800 text-white py-4 text-center text-sm">
     &copy; 2025 JOMAVIKO CO. LTD. All rights reserved.
   </footer>
-    
+
+
+<script>
+  const currentSellerId = `{{ current_user.id | tojson }}`;
+  console.log("Current Seller ID:", currentSellerId);
+</script>
+
+
+  
+ 
   <script>
     // Filter products based on the search input
     document.getElementById("search-input").addEventListener("input", function () {
@@ -240,6 +254,7 @@
       const amountSoldInput = document.getElementById(`amount-sold-${productId}`);
       const inStockInput = document.getElementById(`instock-${productId}`);
       const inStockHiddenInput = document.getElementById(`instock-hidden-${productId}`);
+      
 
       if (!qtyInput || !sellingPriceInput || !amountSoldInput || !inStockInput || !inStockHiddenInput) return;
 
@@ -269,7 +284,9 @@
       const amountInput = document.getElementById(`amount-sold-${productId}`);
       const inStockInput = document.getElementById(`instock-${productId}`);
       const dateSoldInput = document.getElementById(`date-sold-${productId}`);
-      const currentSellerId = 1;  // Temporary hardcoded seller id (you can later replace this)
+
+
+      console.log("Seller ID:", currentSellerId);
 
       // Check if all fields are available
       if (!qtyInput || !priceInput || !amountInput || !inStockInput || !dateSoldInput) {
