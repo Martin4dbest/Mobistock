@@ -81,7 +81,6 @@ class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
-    status = db.Column(db.String(50), default='pending')
     selling_price = db.Column(db.Float, nullable=True)
     amount = db.Column(db.Float, nullable=True)
     in_stock = db.Column(db.Integer, nullable=False)
