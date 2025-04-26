@@ -930,7 +930,6 @@ def register():
 
     return render_template('register.html', ghana_cities=ghana_cities)
 
-
 @app.route('/send-order', methods=['POST'])
 def send_order():
     data = request.get_json()
@@ -939,6 +938,7 @@ def send_order():
     selling_price = float(data.get('selling_price', 0))
     amount = float(data.get('amount', 0))
     date_sold = data.get('date_sold')
+    seller_id = data.get('seller_id')  # Add seller_id to the data
 
     try:
         # Fetch the product from the database
@@ -946,6 +946,10 @@ def send_order():
 
         if not product:
             return jsonify({'success': False, 'error': 'Product not found'}), 404
+
+        # Check that seller_id is provided
+        if not seller_id:
+            return jsonify({'success': False, 'error': 'Seller ID is required'}), 400
 
         # Calculate new remaining stock
         new_in_stock = product.in_stock - quantity
@@ -964,7 +968,8 @@ def send_order():
             selling_price=selling_price,
             amount=amount,
             date_sold=datetime.strptime(date_sold, '%Y-%m-%dT%H:%M:%S.%fZ'),
-            in_stock=new_in_stock  # Optional: for order history reference
+            in_stock=new_in_stock,  # Optional: for order history reference
+            seller_id=seller_id  # Add seller_id here
         )
         db.session.add(order)
         db.session.commit()
@@ -974,8 +979,6 @@ def send_order():
     except Exception as e:
         print("Error saving order:", e)
         return jsonify({'success': False, 'error': str(e)}), 500
-
-
 
  
 @app.route('/view_users')
