@@ -114,31 +114,6 @@
 
   <div class="container mx-auto p-6">
 
-    <!-- Analytics Header -->
-    <h2 class="text-2xl font-bold mb-6 text-center text-[#0a1f44]">Sales Analytics</h2>
-  
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-  
-      <!-- Pie Chart -->
-      <div class="bg-white p-4 rounded-lg shadow">
-        <h3 class="text-lg font-semibold mb-4">Product Sales Distribution</h3>
-        <canvas id="salesPieChart"></canvas>
-      </div>
-  
-      <!-- Bar Chart -->
-      <div class="bg-white p-4 rounded-lg shadow">
-        <h3 class="text-lg font-semibold mb-4">Revenue by Product</h3>
-        <canvas id="revenueBarChart"></canvas>
-      </div>
-  
-    </div>
-  
-    <!-- Line Chart -->
-    <div class="bg-white p-4 rounded-lg shadow mb-8">
-      <h3 class="text-lg font-semibold mb-4">Sales Over Time</h3>
-      <canvas id="salesLineChart"></canvas>
-    </div>
-  
   
     <!-- Top 5 Products -->
   <div class="bg-white p-4 rounded-lg shadow">
@@ -159,13 +134,12 @@
 
 
 
-
-
-  <!-- Show Totals Button -->
-  <div class="text-center mt-4">
+    <!-- Show Totals Button -->
+  <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2">
     <button id="show-totals-button" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-all"
       onclick="calculateAndToggleTotals()">Show Totals</button>
   </div>
+
 
   <!-- Bootstrap Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
