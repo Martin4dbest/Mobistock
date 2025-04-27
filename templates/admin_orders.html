@@ -92,39 +92,40 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <!-- Pie Chart Card -->
-      <div class="bg-white p-6 rounded-lg shadow-md">
-        <h5 class="text-center font-semibold mb-4">Top Products Sold</h5>
-        <canvas id="pieChart"></canvas>
+      <div class="bg-white p-6 rounded-lg shadow-md flex justify-center">
+        <div class="w-[250px] md:w-[300px]">
+          <h5 class="text-center font-semibold mb-4">Top Products Sold</h5>
+          <canvas id="pieChart"></canvas>
+        </div>
       </div>
 
       <!-- Bar Chart Card -->
-      <div class="bg-white p-6 rounded-lg shadow-md">
-        <h5 class="text-center font-semibold mb-4">Sales Revenue by Product</h5>
-        <canvas id="barChart"></canvas>
+      <div class="bg-white p-6 rounded-lg shadow-md flex justify-center">
+        <div class="w-[250px] md:w-[300px]">
+          <h5 class="text-center font-semibold mb-4">Sales Revenue by Product</h5>
+          <canvas id="barChart"></canvas>
+        </div>
       </div>
     </div>
-
   </div>
 
+  <!-- Top 5 Products -->
   <div class="container mx-auto p-6">
-
-  
-    <!-- Top 5 Products -->
-  <div class="bg-white p-4 rounded-lg shadow">
-    <h3 class="text-lg font-semibold mb-4">Top 5 Products</h3>
-    <ul id="topProductsList" class="list-disc pl-5 space-y-2 text-gray-700">
-      {% for product, sales in top_5_products %}
-        <li>{{ product }} - {{ sales }} sold</li>
-      {% endfor %}
-    </ul>
+    <div class="bg-white p-4 rounded-lg shadow">
+      <h3 class="text-lg font-semibold mb-4">Top 5 Products</h3>
+      <ul id="topProductsList" class="list-disc pl-5 space-y-2 text-gray-700">
+        {% for product, sales in top_5_products %}
+          <li>{{ product }} - {{ sales }} sold</li>
+        {% endfor %}
+      </ul>
+    </div>
   </div>
 
-  
-  </div>
-  <div class="card">
-    <h3>🏆 Best Seller</h3>
+  <div class="card mt-6">
+    <h3 class="text-lg font-semibold mb-2">🏆 Best Seller</h3>
     <p><strong>{{ best_seller_name }}</strong> with <strong>{{ best_seller_sales }}</strong> sales</p>
-</div>
+  </div>
+
 
 <!-- Export Button 
 <div class="text-center mt-6">
