@@ -146,6 +146,11 @@
     </div>
   
   </div>
+  <div class="card">
+    <h3>🏆 Best Seller</h3>
+    <p><strong>{{ best_seller_name }}</strong> with <strong>{{ best_seller_sales }}</strong> sales</p>
+</div>
+
 
 
 
@@ -400,6 +405,32 @@
     topProductsList.appendChild(li);
   });
 </script>
+
+<script>
+  const sellerPerformance = JSON.parse(`{{ seller_performance | tojson | safe }}`);
+
+  const sellerNames = Object.keys(sellerPerformance);
+  const sellerSales = Object.values(sellerPerformance);
+
+  const ctx = document.getElementById('sellerPerformanceChart').getContext('2d');
+  new Chart(ctx, {
+      type: 'bar',
+      data: {
+          labels: sellerNames,
+          datasets: [{
+              label: 'Sales by Seller',
+              data: sellerSales,
+              backgroundColor: 'rgba(54, 162, 235, 0.7)'
+          }]
+      },
+      options: {
+          responsive: true
+      }
+  });
+</script>
+
+<canvas id="sellerPerformanceChart"></canvas>
+
 
 
 

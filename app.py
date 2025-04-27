@@ -90,6 +90,8 @@ class Order(db.Model):
     # ✅ NEW RELATIONSHIP
     seller = db.relationship('User', backref='orders')
 
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 
 # Define User model for authentication (admin/seller)
@@ -1048,17 +1050,14 @@ def view_orders():
     return render_template('admin_orders.html', orders=orders, selected_location=selected_location)
 
 """
+from collections import defaultdict
 
 @app.route('/admin/orders')
 def view_orders():
-    # Get the selected location from the query string
     selected_location = request.args.get('location')
-
-    # If no location is selected, redirect to the location selection page
     if not selected_location:
         return redirect(url_for('select_order_location'))
 
-    # Fetch orders for the selected location
     orders = (
         Order.query
         .join(Product, Product.id == Order.product_id)
@@ -1066,8 +1065,10 @@ def view_orders():
         .all()
     )
 
-    # Prepare sales_data from orders (for chart)
+    # Prepare sales_data for chart
     sales_data = []
+    seller_performance = defaultdict(int)
+
     for order in orders:
         sales_data.append({
             "product": order.product.name,
@@ -1075,12 +1076,27 @@ def view_orders():
             "date": order.created_at.strftime("%Y-%m-%d") if order.created_at else None
         })
 
-    # Render the orders page with the selected location and sales data
+        # Sum total quantity or amount sold per seller
+        seller_name = order.product.seller_name if hasattr(order.product, 'seller_name') else "Unknown Seller"
+        seller_performance[seller_name] += order.quantity
+
+    # Find the best seller
+    if seller_performance:
+        best_seller = max(seller_performance.items(), key=lambda x: x[1])
+        best_seller_name = best_seller[0]
+        best_seller_sales = best_seller[1]
+    else:
+        best_seller_name = "N/A"
+        best_seller_sales = 0
+
     return render_template(
         'admin_orders.html',
         orders=orders,
         selected_location=selected_location,
-        sales_data=sales_data  # <<< add this
+        sales_data=sales_data,
+        seller_performance=dict(seller_performance),
+        best_seller_name=best_seller_name,
+        best_seller_sales=best_seller_sales
     )
 
 
