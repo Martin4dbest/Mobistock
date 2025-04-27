@@ -1026,7 +1026,7 @@ def delete_user(user_id):
     flash(f"User {user.username} has been deleted.", "success")
     return redirect(url_for('view_users'))
 
-
+"""
 @app.route('/admin/orders')
 def view_orders():
     # Get the selected location from the query string
@@ -1046,6 +1046,43 @@ def view_orders():
 
     # Render the orders page with the selected location
     return render_template('admin_orders.html', orders=orders, selected_location=selected_location)
+
+"""
+
+@app.route('/admin/orders')
+def view_orders():
+    # Get the selected location from the query string
+    selected_location = request.args.get('location')
+
+    # If no location is selected, redirect to the location selection page
+    if not selected_location:
+        return redirect(url_for('select_order_location'))
+
+    # Fetch orders for the selected location
+    orders = (
+        Order.query
+        .join(Product, Product.id == Order.product_id)
+        .filter(Product.location == selected_location)
+        .all()
+    )
+
+    # Prepare sales_data from orders (for chart)
+    sales_data = []
+    for order in orders:
+        sales_data.append({
+            "product": order.product.name,
+            "quantity": order.quantity,
+            "date": order.created_at.strftime("%Y-%m-%d") if order.created_at else None
+        })
+
+    # Render the orders page with the selected location and sales data
+    return render_template(
+        'admin_orders.html',
+        orders=orders,
+        selected_location=selected_location,
+        sales_data=sales_data  # <<< add this
+    )
+
 
 @app.route('/admin/select_order_location', methods=['GET', 'POST'])
 def select_order_location():
