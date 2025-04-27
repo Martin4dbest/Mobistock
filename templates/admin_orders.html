@@ -132,6 +132,15 @@
     <p><strong>{{ best_seller_name }}</strong> with <strong>{{ best_seller_sales }}</strong> sales</p>
 </div>
 
+<!-- Export Button -->
+<div class="text-center mt-6">
+  <a href="{{ url_for('export_sales_data') }}" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-all">
+    <i class="bi bi-download me-2"></i> Export Sales Data
+  </a>
+</div>
+
+
+
 
 
     <!-- Show Totals Button -->
