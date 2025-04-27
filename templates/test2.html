@@ -10,8 +10,6 @@
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 
   <style>
     .hover\:drop-shadow-glow:hover {
@@ -92,63 +90,13 @@
     </div>
   </div>
 
-  <!-- Sales Analytics Charts -->
-  <div class="container my-6">
-    <h4 class="text-center font-bold text-2xl mb-6 text-[#0a1f44]">📈 Sales Analytics</h4>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <!-- Pie Chart Card -->
-      <div class="bg-white p-6 rounded-lg shadow-md">
-        <h5 class="text-center font-semibold mb-4">Top Products Sold</h5>
-        <canvas id="pieChart"></canvas>
-      </div>
-
-      <!-- Bar Chart Card -->
-      <div class="bg-white p-6 rounded-lg shadow-md">
-        <h5 class="text-center font-semibold mb-4">Sales Revenue by Product</h5>
-        <canvas id="barChart"></canvas>
-      </div>
+  <!-- Chat Log -->
+  <div class="container my-4">
+    <h4 class="text-center font-bold mb-2">📢 Analytics Chat Log</h4>
+    <div id="analyticsChatLog" class="bg-white p-4 rounded-lg shadow space-y-2 max-h-64 overflow-y-auto text-sm">
+      <!-- Dynamic chat entries -->
     </div>
-
   </div>
-
-  <div class="container mx-auto p-6">
-
-    <!-- Analytics Header -->
-    <h2 class="text-2xl font-bold mb-6 text-center text-[#0a1f44]">Sales Analytics</h2>
-  
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-  
-      <!-- Pie Chart -->
-      <div class="bg-white p-4 rounded-lg shadow">
-        <h3 class="text-lg font-semibold mb-4">Product Sales Distribution</h3>
-        <canvas id="salesPieChart"></canvas>
-      </div>
-  
-      <!-- Bar Chart -->
-      <div class="bg-white p-4 rounded-lg shadow">
-        <h3 class="text-lg font-semibold mb-4">Revenue by Product</h3>
-        <canvas id="revenueBarChart"></canvas>
-      </div>
-  
-    </div>
-  
-    <!-- Line Chart -->
-    <div class="bg-white p-4 rounded-lg shadow mb-8">
-      <h3 class="text-lg font-semibold mb-4">Sales Over Time</h3>
-      <canvas id="salesLineChart"></canvas>
-    </div>
-  
-    <!-- Top 5 Products -->
-    <div class="bg-white p-4 rounded-lg shadow">
-      <h3 class="text-lg font-semibold mb-4">Top 5 Products</h3>
-      <ul id="topProductsList" class="list-disc pl-5 space-y-2 text-gray-700"></ul>
-    </div>
-  
-  </div>
-
-
-
 
   <!-- Show Totals Button -->
   <div class="text-center mt-4">
@@ -233,174 +181,6 @@
       }
     });
   </script>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const labels = [];
-    const quantities = [];
-    const revenues = [];
-
-    const rows = document.getElementById('orderTableBody').getElementsByTagName('tr');
-    for (let row of rows) {
-      const cells = row.getElementsByTagName('td');
-      if (cells.length >= 6) {
-        const productName = cells[0].textContent.trim();
-        const quantity = parseInt(cells[3].textContent.trim(), 10);
-        const revenue = parseFloat(cells[5].textContent.trim());
-
-        labels.push(productName);
-        quantities.push(quantity);
-        revenues.push(revenue);
-      }
-    }
-
-    // Pie Chart - Quantities Sold
-    const pieCtx = document.getElementById('pieChart').getContext('2d');
-    new Chart(pieCtx, {
-      type: 'pie',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Quantity Sold',
-          data: quantities,
-          backgroundColor: [
-            '#34D399', '#60A5FA', '#FBBF24', '#F87171', '#A78BFA', '#F472B6', '#4ADE80'
-          ],
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { position: 'bottom' }
-        }
-      }
-    });
-
-    // Bar Chart - Revenue per Product
-    const barCtx = document.getElementById('barChart').getContext('2d');
-    new Chart(barCtx, {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Revenue ($)',
-          data: revenues,
-          backgroundColor: '#6366F1'
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: { beginAtZero: true }
-        }
-      }
-    });
-  });
-</script>
-
-<script>
- 
-  const salesData = JSON.parse(`{{ sales_data | tojson | safe }}`); 
-  const products = {};
-  const revenue = {};
-  const salesOverTime = {};
-
-  salesData.forEach(item => {
-    const name = item.product_name;
-    const quantity = parseInt(item.quantity_sold);
-    const price = parseFloat(item.total_price);
-    const date = item.sale_date; // Assume your backend passes a 'sale_date' field
-
-    // Quantity and Revenue aggregation
-    products[name] = (products[name] || 0) + quantity;
-    revenue[name] = (revenue[name] || 0) + price;
-
-    // Sales over Time aggregation
-    if (date) {
-      salesOverTime[date] = (salesOverTime[date] || 0) + price;
-    }
-  });
-
-  const productLabels = Object.keys(products);
-  const quantityData = Object.values(products);
-  const revenueData = Object.values(revenue);
-
-  // Sort salesOverTime by date
-  const sortedDates = Object.keys(salesOverTime).sort();
-  const salesAmounts = sortedDates.map(date => salesOverTime[date]);
-
-  // Pie Chart - Quantity Sold
-  new Chart(document.getElementById('salesPieChart'), {
-    type: 'pie',
-    data: {
-      labels: productLabels,
-      datasets: [{
-        label: 'Products Sold',
-        data: quantityData,
-        backgroundColor: ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#6366f1', '#14b8a6'],
-        hoverOffset: 10,
-      }]
-    }
-  });
-
-  // Bar Chart - Revenue
-  new Chart(document.getElementById('revenueBarChart'), {
-    type: 'bar',
-    data: {
-      labels: productLabels,
-      datasets: [{
-        label: 'Revenue',
-        data: revenueData,
-        backgroundColor: '#3b82f6',
-        borderColor: '#1d4ed8',
-        borderWidth: 1,
-      }]
-    },
-    options: {
-      scales: {
-        y: {
-          beginAtZero: true
-        }
-      }
-    }
-  });
-
-  // Line Chart - Sales Over Time
-  new Chart(document.getElementById('salesLineChart'), {
-    type: 'line',
-    data: {
-      labels: sortedDates,
-      datasets: [{
-        label: 'Total Sales',
-        data: salesAmounts,
-        fill: false,
-        borderColor: '#14b8a6',
-        tension: 0.3
-      }]
-    },
-    options: {
-      scales: {
-        y: {
-          beginAtZero: true
-        }
-      }
-    }
-  });
-
-  // Top 5 Products
-  const topProducts = Object.entries(products)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
-
-  const topProductsList = document.getElementById('topProductsList');
-  topProducts.forEach(([product, qty]) => {
-    const li = document.createElement('li');
-    li.textContent = `${product} - ${qty} sold`;
-    topProductsList.appendChild(li);
-  });
-</script>
-
 
 
 </body>
