@@ -1166,17 +1166,15 @@ def delete_all_products():
 
 import csv
 from flask import Response
+from io import StringIO
 
-
-# Route to export sales data as CSV
 @app.route('/export_sales_data')
 def export_sales_data():
     # Fetch orders from the database
     orders = Order.query.all()  # You can apply filters here if needed
 
-    # Create the CSV response
-    output = Response(content_type='text/csv')
-    output.headers["Content-Disposition"] = "attachment; filename=sales_analysis.csv"
+    # Create a StringIO buffer to write the CSV data
+    output = StringIO()
     writer = csv.writer(output)
 
     # Write the header row for the CSV file
@@ -1186,8 +1184,14 @@ def export_sales_data():
     for order in orders:
         writer.writerow([order.product_name, order.quantity, order.amount, order.created_at.strftime("%Y-%m-%d %H:%M:%S")])
 
-    return output
+    # Get the CSV data as a string
+    output.seek(0)
+    
+    # Create the CSV response
+    response = Response(output.getvalue(), content_type='text/csv')
+    response.headers["Content-Disposition"] = "attachment; filename=sales_analysis.csv"
 
+    return response
 
     
 

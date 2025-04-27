@@ -50,12 +50,6 @@
       </form>
     </div>
 
-    <!-- Totals Section -->
-    <div id="totals-container" class="my-4 text-center" style="display: none;">
-      <h3 class="text-xl font-semibold">Totals for Filtered Products</h3>
-      <p><strong>Total Quantity Sold:</strong> <span id="totalQuantity">0</span></p>
-      <p><strong>Total Amount Made ($):</strong> $<span id="totalAmount">0.00</span></p>
-    </div>
 
     <!-- Orders Table -->
     <div class="overflow-x-auto">
@@ -142,7 +136,6 @@
 
 
 
-
     <!-- Show Totals Button -->
   <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2">
     <button id="show-totals-button" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-all"
@@ -211,6 +204,8 @@
       document.getElementById('show-totals-button').textContent =
         totalsContainer.style.display === 'block' ? 'Hide Totals' : 'Show Totals';
     }
+    
+
   </script>
 
 
@@ -419,6 +414,20 @@
 </script>
 
 <canvas id="sellerPerformanceChart"></canvas>
+
+
+
+    <!-- Totals Section -->
+  <div id="totals-container" class="my-4 text-center" style="display: none;">
+    <p><strong>Total Quantity Sold:</strong> <span id="totalQuantity">0</span></p>
+    <p><strong>Total Amount Made ($):</strong> $<span id="totalAmount">0.00</span></p>
+  </div>
+
+  <!-- Show/Hide Totals Button -->
+  <div class="button-container text-center">
+    <button id="show-totals-button" onclick="calculateAndToggleTotals()">Show Totals</button>
+  </div>
+
 
 
 
