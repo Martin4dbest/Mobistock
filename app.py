@@ -615,64 +615,7 @@ def delete_product(product_id):
     return redirect(url_for('admin_dashboard'))
 
 
-"""
-@app.route('/admin', methods=['GET', 'POST'])
-@login_required
-def admin_dashboard():
-    if current_user.role != 'admin':
-        return redirect(url_for('login'))
 
-    # Handle import from Google Sheets
-    if request.method == 'POST' and 'import_button' in request.form:
-        sheet_data =  get_google_sheet_data_by_location() # Ensure this returns a list of dicts
-       
-
-        for row in sheet_data:
-            name = row.get('name', '').strip()
-            identification_number = row.get('identification_number', '').strip()
-            price = float(row.get('price', 0.0))  # Base price only
-            in_stock = row.get('in_stock', 0)
-
-            if name and identification_number:
-                existing = Product.query.filter_by(identification_number=identification_number).first()
-                if not existing:
-                    product = Product(
-                        name=name,
-                        identification_number=identification_number,
-                        price=price,
-                        selling_price=None  # Initially not set
-                    )
-                    db.session.add(product)
-                    db.session.commit()  # Commit to get product.id
-
-                    inventory = Inventory(
-                        product_id=product.id,
-                        quantity_in_stock=10 if in_stock else 0  
-                    )
-                    db.session.add(inventory)
-
-        db.session.commit()
-
-    # Search logic
-    search_query = request.args.get('search', '').strip()
-    if search_query:
-        products = Product.query.filter(Product.name.ilike(f"%{search_query}%")).all()
-    else:
-        products = Product.query.all()
-
-    inventories = {inv.product_id: inv for inv in Inventory.query.all()}
-    orders = Order.query.all()
-
-    return render_template(
-        'admin_dashboard.html',
-        products=products,
-        inventories=inventories,
-        orders=orders,
-        user_role='admin',
-        search_query=search_query,
-    )
-
-"""
 @app.route('/admin', methods=['GET', 'POST'])
 @login_required
 def admin_dashboard():
