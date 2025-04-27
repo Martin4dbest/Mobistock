@@ -1050,8 +1050,9 @@ def view_orders():
     return render_template('admin_orders.html', orders=orders, selected_location=selected_location)
 
 """
-from collections import defaultdict
 
+
+from collections import defaultdict
 @app.route('/admin/orders')
 def view_orders():
     selected_location = request.args.get('location')
@@ -1068,6 +1069,7 @@ def view_orders():
     # Prepare sales_data for chart
     sales_data = []
     seller_performance = defaultdict(int)
+    product_sales = defaultdict(int)  # To calculate total sales for each product
 
     for order in orders:
         sales_data.append({
@@ -1076,18 +1078,25 @@ def view_orders():
             "date": order.created_at.strftime("%Y-%m-%d") if order.created_at else None
         })
 
-        # Sum total quantity or amount sold per seller
-        seller_name = order.product.seller_name if hasattr(order.product, 'seller_name') else "Unknown Seller"
-        seller_performance[seller_name] += order.quantity
+        # Sum total quantity or amount sold per seller (using seller relationship)
+        seller_name = order.seller.username if hasattr(order, 'seller') and order.seller else "Unknown Seller"
+        seller_id = order.seller.id if hasattr(order, 'seller') and order.seller else "Unknown Seller ID"
+        seller_performance[seller_id] = seller_performance.get(seller_id, 0) + order.quantity
 
-    # Find the best seller
+        # Sum total sales for each product (for the top 5 products calculation)
+        product_sales[order.product.name] += order.quantity
+
+    # Find the best seller (from seller_id)
     if seller_performance:
-        best_seller = max(seller_performance.items(), key=lambda x: x[1])
-        best_seller_name = best_seller[0]
-        best_seller_sales = best_seller[1]
+        best_seller_id = max(seller_performance.items(), key=lambda x: x[1])[0]
+        best_seller_name = User.query.get(best_seller_id).username  # Fetching seller name using seller_id
+        best_seller_sales = seller_performance[best_seller_id]
     else:
         best_seller_name = "N/A"
         best_seller_sales = 0
+
+    # Calculate top 5 products based on sales quantity
+    top_5_products = sorted(product_sales.items(), key=lambda x: x[1], reverse=True)[:5]
 
     return render_template(
         'admin_orders.html',
@@ -1096,8 +1105,10 @@ def view_orders():
         sales_data=sales_data,
         seller_performance=dict(seller_performance),
         best_seller_name=best_seller_name,
-        best_seller_sales=best_seller_sales
+        best_seller_sales=best_seller_sales,
+        top_5_products=top_5_products  # Pass the top 5 products here
     )
+
 
 
 @app.route('/admin/select_order_location', methods=['GET', 'POST'])

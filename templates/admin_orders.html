@@ -139,11 +139,17 @@
       <canvas id="salesLineChart"></canvas>
     </div>
   
+  
     <!-- Top 5 Products -->
-    <div class="bg-white p-4 rounded-lg shadow">
-      <h3 class="text-lg font-semibold mb-4">Top 5 Products</h3>
-      <ul id="topProductsList" class="list-disc pl-5 space-y-2 text-gray-700"></ul>
-    </div>
+  <div class="bg-white p-4 rounded-lg shadow">
+    <h3 class="text-lg font-semibold mb-4">Top 5 Products</h3>
+    <ul id="topProductsList" class="list-disc pl-5 space-y-2 text-gray-700">
+      {% for product, sales in top_5_products %}
+        <li>{{ product }} - {{ sales }} sold</li>
+      {% endfor %}
+    </ul>
+  </div>
+
   
   </div>
   <div class="card">
