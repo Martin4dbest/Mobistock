@@ -202,6 +202,29 @@
         totalsContainer.style.display === 'block' ? 'Hide Totals' : 'Show Totals';
     }
     
+    function displayTotals(totalQuantity, totalAmount) {
+      const totalsContainer = document.getElementById('totals-container');
+      document.getElementById('totalQuantity').textContent = totalQuantity;
+      document.getElementById('totalAmount').textContent = totalAmount.toFixed(2);
+
+      // Toggle the display of the totals container
+      totalsContainer.style.display = totalsContainer.style.display === 'none' ? 'block' : 'none';
+
+      // Get the button
+      const showTotalsButton = document.getElementById('show-totals-button');
+
+      // Change button text and inline styles
+      if (totalsContainer.style.display === 'block') {
+        showTotalsButton.textContent = 'Hide Totals';
+        showTotalsButton.style.backgroundColor = 'brown';
+        showTotalsButton.style.color = 'white';
+      } else {
+        showTotalsButton.textContent = 'Show Totals';
+        showTotalsButton.style.backgroundColor = 'green';
+        showTotalsButton.style.color = 'white';
+      }
+    }
+
 
   </script>
 
@@ -454,10 +477,8 @@
     <p><strong>Total Amount Made ($):</strong> $<span id="totalAmount">0.00</span></p>
   </div>
 
-  <!-- Show/Hide Totals Button -->
-  <div class="button-container text-center">
-    <button id="show-totals-button" onclick="calculateAndToggleTotals()">Show Totals</button>
-  </div>
+
+  
 
 
 
