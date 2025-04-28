@@ -965,16 +965,19 @@ def select_order_location():
 
 @app.route('/delete-sales-by-location', methods=['POST'])
 def delete_sales_by_location():
-    location = request.form.get('location')  # or request.args.get('location') if you're passing it in URL query
+    location = request.form.get('location')
 
     if not location:
         flash("Location is required to delete sales records.", "danger")
         return redirect(url_for('view_orders'))
 
     try:
-        # Join Product table and filter orders by product location
-        orders_to_delete = Order.query.join(Product).filter(Product.location == location)
-        orders_to_delete.delete(synchronize_session=False)
+        # Fetch all orders linked to products at that location
+        orders_to_delete = Order.query.join(Product).filter(Product.location == location).all()
+
+        for order in orders_to_delete:
+            db.session.delete(order)
+
         db.session.commit()
         flash(f"All sales records for {location} have been deleted.", "success")
     except Exception as e:

@@ -45,12 +45,14 @@
     <!-- Delete Sales by Location Button -->
     <div class="text-end mb-3">
       <form action="{{ url_for('delete_sales_by_location') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete all sales for this location?');">
-        <input type="hidden" name="location" value="{{ location_variable }}">
+        <input type="hidden" name="location" value="{{ location }}">
         <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-all shadow">
           <i class="bi bi-trash-fill me-2"></i> Delete Sales for This Location
         </button>
       </form>
     </div>
+
+    
 
 
 
