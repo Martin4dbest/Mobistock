@@ -160,6 +160,9 @@ def export_stock_history_excel():
     # Prepare data for Excel export
     data = []
     for entry in stock_changes:
+        location_name = ''
+        if entry.product:  # Ensure the product is present
+            location_name = getattr(entry.product, 'location', '')  # Get location from product
         data.append({
             'Date': entry.created_at.strftime('%Y-%m-%d %H:%M:%S') if entry.created_at else '',
             'Admin': getattr(entry.admin, 'username', entry.admin_id) if entry.admin else entry.admin_id,
@@ -167,7 +170,7 @@ def export_stock_history_excel():
             'Seller': getattr(entry.seller, 'username', entry.seller_id) if entry.seller else entry.seller_id,
             'Change': entry.change_amount if entry.change_amount is not None else '',
             'Reason': entry.reason or '',
-            'Location': getattr(entry.product, 'location', '') if entry.product else ''  # Add location here
+            'Location': location_name  # Add location here
         })
 
     # Create Excel file
@@ -183,6 +186,7 @@ def export_stock_history_excel():
         as_attachment=True,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
+
 
 
 
