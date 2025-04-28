@@ -941,7 +941,7 @@ def view_orders():
 def select_order_location():
     # Static list of cities in Ghana
     ghana_cities = [
-        'Accra', 'Kumasi', 'Sekondi', 'Tamale', 'Takoradi', 'Cape Coast', 
+        'Accra', 'Kumasi', 'Tamale', 'Sekondi', 'Takoradi', 'Cape Coast', 
         'Sunyani', 'Bolgatanga', 'Wa', 'Ho', 'Berekum', 'Nsawam', 'New Edubiase',
         'Akim Oda', 'Landslide', 'Asamankese', 'Mampong', 'Sefwi Wiawso'
     ]

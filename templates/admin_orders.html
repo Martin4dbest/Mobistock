@@ -409,6 +409,40 @@
       }
   });
 </script>
+<script>
+  document.getElementById('exportStockHistoryBtn').addEventListener('click', function(event) {
+    event.preventDefault(); // prevent normal link behavior
+  
+    fetch(this.href)
+      .then(response => {
+        if (!response.ok) {
+          if (response.status === 404) {
+            alert('🚫 No sales history available for export.');
+          } else {
+            alert('⚠️ An error occurred while exporting sales history.');
+          }
+          return;
+        }
+        return response.blob();
+      })
+      .then(blob => {
+        if (blob) {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'stock_history_filtered.xlsx';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        }
+      })
+      .catch(error => {
+        console.error('Error exporting file:', error);
+        alert('❌ Failed to export sales history.');
+      });
+  });
+  </script>
+  
 
 <canvas id="sellerPerformanceChart"></canvas>
 
@@ -424,6 +458,7 @@
   <div class="button-container text-center">
     <button id="show-totals-button" onclick="calculateAndToggleTotals()">Show Totals</button>
   </div>
+
 
 
 
