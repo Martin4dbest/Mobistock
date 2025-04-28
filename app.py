@@ -152,7 +152,8 @@ def export_stock_history_excel():
     if location:
         query = query.join(Product).filter(Product.location == location)
 
-    stock_changes = query.order_by(StockHistory.created_at.desc()).all()
+    # Explicitly load product and its location field
+    stock_changes = query.join(Product).all()  # Ensures that the Product model is loaded
 
     if not stock_changes:
         return "No stock history records found to export.", 404
@@ -161,7 +162,7 @@ def export_stock_history_excel():
     data = []
     for entry in stock_changes:
         location_name = ''
-        if entry.product:  # Ensure the product is present
+        if entry.product:  # Ensure the product is loaded
             location_name = getattr(entry.product, 'location', '')  # Get location from product
         data.append({
             'Date': entry.created_at.strftime('%Y-%m-%d %H:%M:%S') if entry.created_at else '',
@@ -170,7 +171,7 @@ def export_stock_history_excel():
             'Seller': getattr(entry.seller, 'username', entry.seller_id) if entry.seller else entry.seller_id,
             'Change': entry.change_amount if entry.change_amount is not None else '',
             'Reason': entry.reason or '',
-            'Location': location_name  # Add location here
+            'Location': location_name  # Ensure location is added
         })
 
     # Create Excel file
@@ -186,6 +187,7 @@ def export_stock_history_excel():
         as_attachment=True,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
+
 
 
 
