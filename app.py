@@ -157,8 +157,7 @@ def export_stock_history_excel():
     if not stock_changes:
         return "No stock history records found to export.", 404
 
-
-        # Prepare data for Excel export
+    # Prepare data for Excel export
     data = []
     for entry in stock_changes:
         data.append({
@@ -167,9 +166,9 @@ def export_stock_history_excel():
             'Product': getattr(entry.product, 'name', entry.product_id) if entry.product else entry.product_id,
             'Seller': getattr(entry.seller, 'username', entry.seller_id) if entry.seller else entry.seller_id,
             'Change': entry.change_amount if entry.change_amount is not None else '',
-            'Reason': entry.reason or ''
+            'Reason': entry.reason or '',
+            'Location': getattr(entry.product, 'location', '') if entry.product else ''  # Add location here
         })
-
 
     # Create Excel file
     df = pd.DataFrame(data)
@@ -184,7 +183,6 @@ def export_stock_history_excel():
         as_attachment=True,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-
 
 
 
