@@ -134,6 +134,34 @@
   </a>
 </div>
 
+    <!-- Totals Section -->
+    <div id="totals-container" class="my-4 text-center" style="display: none;">
+      <p><strong>Total Quantity Sold:</strong> <span id="totalQuantity">0</span></p>
+      <p><strong>Total Amount Made ($):</strong> $<span id="totalAmount">0.00</span></p>
+    </div>
+  
+  
+  
+    <!-- Show/Hide Totals Button -->
+  <div class="button-container text-center">
+    <button id="show-totals-button" onclick="calculateAndToggleTotals()" class="show-totals">Show Totals</button>
+  </div>
+  
+  <style>
+    /* Styles for the Show Totals button (Green) */
+    .show-totals {
+      background-color: green;
+      color: white;
+    }
+  
+    /* Styles for the Hide Totals button (Brown) */
+    .hide-totals {
+      background-color: brown;
+      color: white;
+    }
+  </style>
+  
+
 
 
 
@@ -468,42 +496,6 @@
   
 
 <canvas id="sellerPerformanceChart"></canvas>
-
-
-
-    <!-- Totals Section -->
-  <div id="totals-container" class="my-4 text-center" style="display: none;">
-    <p><strong>Total Quantity Sold:</strong> <span id="totalQuantity">0</span></p>
-    <p><strong>Total Amount Made ($):</strong> $<span id="totalAmount">0.00</span></p>
-  </div>
-
-
-
-  <!-- Show/Hide Totals Button -->
-<div class="button-container text-center">
-  <button id="show-totals-button" onclick="calculateAndToggleTotals()" class="show-totals">Show Totals</button>
-</div>
-
-<style>
-  /* Styles for the Show Totals button (Green) */
-  .show-totals {
-    background-color: green;
-    color: white;
-  }
-
-  /* Styles for the Hide Totals button (Brown) */
-  .hide-totals {
-    background-color: brown;
-    color: white;
-  }
-</style>
-
-
-
-  
-
-
-
 
 
 
