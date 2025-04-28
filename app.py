@@ -990,34 +990,72 @@ def delete_all_products():
     return redirect(url_for('admin_dashboard'))
 
 
-import csv
-from flask import Response
-from io import StringIO
+from flask import send_file
+import pandas as pd
+from io import BytesIO
+from datetime import datetime, timedelta
 
-@app.route('/export_sales_data')
+@app.route('/export_sales_data', methods=['GET'])
 def export_sales_data():
-    # Fetch orders from the database
-    orders = Order.query.all()  # You can apply filters here if needed
+    if not current_user.is_authenticated or current_user.role != 'admin':
+        return "Unauthorized", 403
 
-    # Create a StringIO buffer to write the CSV data
-    output = StringIO()
-    writer = csv.writer(output)
+    # Fetch optional filters
+    start_date_str = request.args.get('start_date', '')
+    end_date_str = request.args.get('end_date', '')
+    location = request.args.get('location', '')
 
-    # Write the header row for the CSV file
-    writer.writerow(['Product Name', 'Quantity Sold', 'Total Sales ($)', 'Date Sold'])
+    query = Order.query
 
-    # Add rows for each order
+    if start_date_str:
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+        query = query.filter(Order.created_at >= start_date)
+    if end_date_str:
+        end_date = datetime.strptime(end_date_str, '%Y-%m-%d') + timedelta(days=1) - timedelta(seconds=1)
+        query = query.filter(Order.created_at <= end_date)
+    if location:
+        query = query.join(Product).filter(Product.location == location)
+
+    orders = query.order_by(Order.created_at.desc()).all()
+
+    # Prepare data
+    data = []
     for order in orders:
-        writer.writerow([order.product_name, order.quantity, order.amount, order.created_at.strftime("%Y-%m-%d %H:%M:%S")])
+        data.append({
+            'Date Sold': order.date_sold.strftime('%Y-%m-%d %H:%M:%S') if order.date_sold else '',
+            'Product Name': order.product.name if order.product else 'Unknown Product',
+            'Quantity': order.quantity,
+            'Amount': order.amount,
+            'Seller': order.seller.username if order.seller else 'Unknown Seller',
+            'Created At': order.created_at.strftime('%Y-%m-%d %H:%M:%S') if order.created_at else ''
+        })
 
-    # Get the CSV data as a string
+    if not data:
+        data.append({
+            'Date Sold': '',
+            'Product Name': '',
+            'Quantity': '',
+            'Amount': '',
+            'Seller': '',
+            'Created At': ''
+        })
+
+    df = pd.DataFrame(data)
+
+    # Create an Excel file
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Sales Data')
+
     output.seek(0)
-    
-    # Create the CSV response
-    response = Response(output.getvalue(), content_type='text/csv')
-    response.headers["Content-Disposition"] = "attachment; filename=sales_analysis.csv"
 
-    return response
+    return send_file(
+        output,
+        download_name='sales_data.xlsx',
+        as_attachment=True,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+
 
     
 
