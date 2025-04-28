@@ -1011,6 +1011,7 @@ def export_sales_data():
 
     query = Order.query
 
+    # Apply filters
     if start_date_str:
         start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
         query = query.filter(Order.created_at >= start_date)
@@ -1025,12 +1026,16 @@ def export_sales_data():
     # Prepare data
     data = []
     for order in orders:
+        # Get the location from the related Product model
+        product_location = order.product.location if order.product else 'Unknown Location'
+
         data.append({
             'Date Sold': order.date_sold.strftime('%Y-%m-%d %H:%M:%S') if order.date_sold else '',
             'Product Name': order.product.name if order.product else 'Unknown Product',
             'Quantity': order.quantity,
             'Amount': order.amount,
             'Seller': order.seller.username if order.seller else 'Unknown Seller',
+            'Location': product_location,  # Use location here
             'Created At': order.created_at.strftime('%Y-%m-%d %H:%M:%S') if order.created_at else ''
         })
 
@@ -1041,12 +1046,14 @@ def export_sales_data():
             'Quantity': '',
             'Amount': '',
             'Seller': '',
+            'Location': '',  
             'Created At': ''
         })
 
+    # Create an Excel file
     df = pd.DataFrame(data)
 
-    # Create an Excel file
+    # Create an Excel file in memory
     output = BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df.to_excel(writer, index=False, sheet_name='Sales Data')
