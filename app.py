@@ -979,7 +979,7 @@ def delete_all_products():
         return redirect(url_for('login'))
 
     try:
-        Inventory.query.delete()  # Optional: clean up related inventory first
+        Inventory.query.delete()  
         Product.query.delete()
         db.session.commit()
         flash("All products have been deleted.", "success")
