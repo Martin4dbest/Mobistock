@@ -682,6 +682,34 @@ def login():
             flash('Invalid login credentials', 'danger')
     return render_template('login.html')
 
+
+
+
+
+@app.route('/admin/change-password', methods=['GET', 'POST'])
+def change_password():
+    if request.method == 'POST':
+        username = request.form['username']
+        new_password = request.form['new_password']
+        confirm_password = request.form['confirm_password']
+
+        user = User.query.filter_by(username=username, role='admin').first()
+
+        if not user:
+            flash('Admin user not found.', 'danger')
+        elif new_password != confirm_password:
+            flash('New passwords do not match.', 'danger')
+        else:
+            user.password = generate_password_hash(new_password)
+            db.session.commit()
+            flash('Password changed successfully. Please log in.', 'success')
+            return redirect(url_for('login'))
+
+    return render_template('change_password.html')
+
+
+
+
 # Route for user logout
 @app.route('/logout')
 @login_required
