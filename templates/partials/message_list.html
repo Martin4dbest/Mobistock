@@ -1,0 +1,11 @@
+{% for message in messages %}
+  <div class="flex {{ 'justify-end' if message.sender_id == current_user.id else 'justify-start' }}">
+    <div class="relative max-w-xs p-4 rounded-lg 
+      {% if message.sender_id == current_user.id %} bg-green-100 text-gray-900 {% else %} bg-gray-200 text-gray-900 {% endif %}"
+      data-message-id="{{ message.id }}"
+      data-message-text="{{ message.content|tojson }}">
+      <strong class="block text-sm font-semibold">{{ 'You' if message.sender_id == current_user.id else message.sender.username }}:</strong>
+      <p class="text-base" id="message-text-{{ message.id }}">{{ message.content }}</p>
+    </div>
+  </div>
+{% endfor %}

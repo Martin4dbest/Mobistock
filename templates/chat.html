@@ -37,7 +37,7 @@
       Chat with {{ target_user.username }} ({{ target_user.location }})
     </h2>
 
-    <div class="chat-box space-y-6 mb-6 overflow-y-auto max-h-[70vh]">
+    <div id="chat-box" class="chat-box space-y-6 mb-6 overflow-y-auto max-h-[70vh]">
       {% for message in messages %}
         <div class="flex {{ 'justify-end' if message.sender_id == current_user.id else 'justify-start' }}">
           <div class="relative max-w-xs p-4 rounded-lg 
@@ -80,67 +80,100 @@
     </div>
   </div>
 
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
   <script>
+    const socket = io();
+    const senderId = {{ current_user.id }};
+    const receiverId = {{ target_user.id }};
+    const room = `${Math.min(senderId, receiverId)}_${Math.max(senderId, receiverId)}`;
+    socket.emit('join', room);
+
+    // Real-time message receive handler
+    socket.on('new_message', function (data) {
+        try {
+            const chatBox = document.getElementById('chat-box');
+            const messageEl = document.createElement('div');
+            messageEl.className = 'relative p-2 border rounded mb-2';
+            messageEl.setAttribute('data-message-id', data.message_id);
+            messageEl.setAttribute('data-message-text', data.content);
+
+            const messageText = document.createElement('span');
+            messageText.id = `message-text-${data.message_id}`;
+            messageText.textContent = `${data.sender_username}: ${data.content}`;
+
+            messageEl.appendChild(messageText);
+            chatBox.appendChild(messageEl);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        } catch (error) {
+            console.error("Error receiving message:", error);
+        }
+    });
+
+    // Context Menu Logic
     let currentMessageId = null;
     let currentMessageText = null;
 
-    document.querySelectorAll('.relative').forEach(element => {
-      element.addEventListener('contextmenu', function (event) {
-        event.preventDefault();
+    document.addEventListener('contextmenu', function (event) {
+        const element = event.target.closest('.relative');
+        if (element && element.hasAttribute('data-message-id')) {
+            event.preventDefault();
+            currentMessageId = element.getAttribute('data-message-id');
+            currentMessageText = element.getAttribute('data-message-text');
 
-        // Get message data from the element's attributes
-        currentMessageId = element.getAttribute('data-message-id');
-        currentMessageText = element.getAttribute('data-message-text');
-
-        const menu = document.getElementById('context-menu');
-        menu.style.left = `${event.pageX}px`;
-        menu.style.top = `${event.pageY}px`;
-        menu.style.display = 'block';
-
-        document.addEventListener('click', hideContextMenu);
-      });
+            const menu = document.getElementById('context-menu');
+            menu.style.left = `${event.pageX}px`;
+            menu.style.top = `${event.pageY}px`;
+            menu.style.display = 'block';
+            document.addEventListener('click', hideContextMenu);
+        }
     });
 
     function hideContextMenu() {
-      const menu = document.getElementById('context-menu');
-      menu.style.display = 'none';
-      document.removeEventListener('click', hideContextMenu);
+        document.getElementById('context-menu').style.display = 'none';
+        document.removeEventListener('click', hideContextMenu);
     }
 
     function editMessage() {
-      const newText = prompt('Edit your message:', currentMessageText);
-      if (newText !== null) {
-        fetch(`/edit_message/${currentMessageId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ content: newText })
-        }).then(response => {
-          if (response.ok) {
-            document.getElementById(`message-text-${currentMessageId}`).textContent = newText;
-          }
-        });
-      }
-      hideContextMenu();
+        const newText = prompt('Edit your message:', currentMessageText);
+        if (newText !== null) {
+            fetch(`/edit_message/${currentMessageId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: newText })
+            })
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById(`message-text-${currentMessageId}`).textContent = newText;
+                }
+            });
+        }
+        hideContextMenu();
     }
 
     function deleteMessage() {
-      if (confirm('Are you sure you want to delete this message?')) {
-        fetch(`/delete_message/${currentMessageId}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }).then(response => {
-          if (response.ok) {
-            document.getElementById(`message-text-${currentMessageId}`).parentElement.remove();
-          }
-        });
-      }
-      hideContextMenu();
+        if (confirm('Are you sure you want to delete this message?')) {
+            fetch(`/delete_message/${currentMessageId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById(`message-text-${currentMessageId}`).parentElement.remove();
+                }
+            });
+        }
+        hideContextMenu();
     }
-  </script>
 
+    // Auto-refresh chat messages every 2 seconds (without interrupting typing)
+    setInterval(() => {
+      const chatBox = document.getElementById('chat-box');
+      fetch(`/get_messages/{{ target_user.id }}`)
+        .then(res => res.text())
+        .then(html => {
+          chatBox.innerHTML = html;
+        });
+    }, 2000);
+  </script>
 </body>
 </html>

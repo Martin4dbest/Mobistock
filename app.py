@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, flash, session
+from flask import Flask, render_template, redirect, url_for, request, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_migrate import Migrate
@@ -6,11 +6,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
 from google.oauth2.service_account import Credentials
-from dotenv import load_dotenv  # Import the dotenv library
-import os
-import json 
-from flask import request, jsonify
 from datetime import datetime
+from flask_socketio import SocketIO, emit, join_room
+import os
+import json
 
 
 # Load environment variables from .env
@@ -18,6 +17,8 @@ load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
+
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Configure app using environment variables
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
@@ -28,6 +29,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 # Initialize Flask-Login
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -1164,6 +1166,7 @@ def chat_with_user(user_id):
 
     return render_template('chat.html', messages=messages, target_user=target_user)
 
+
 @app.route('/send_message/<int:user_id>', methods=['POST'])
 @login_required
 def send_message(user_id):
@@ -1181,7 +1184,26 @@ def send_message(user_id):
     db.session.add(message)
     db.session.commit()
 
+    # ✅ Emit the message via Socket.IO to the shared room
+    room = f"{min(current_user.id, target_user.id)}_{max(current_user.id, target_user.id)}"
+    socketio.emit('new_message', {
+        'message_id': message.id,
+        'sender_id': current_user.id,
+        'sender_username': current_user.username,
+        'receiver_id': target_user.id,
+        'content': content,
+    }, room=room)
+
     return redirect(url_for('chat_with_user', user_id=user_id))
+
+
+
+
+
+@socketio.on('join')
+def handle_join(room):
+    join_room(room)
+
 
 
 @app.route('/edit_message/<int:message_id>', methods=['POST'])
@@ -1215,12 +1237,34 @@ def delete_message(message_id):
 
 
 
+def get_chat_messages(user_id_1, user_id_2):
+    return Message.query.filter(
+        ((Message.sender_id == user_id_1) & (Message.receiver_id == user_id_2)) |
+        ((Message.sender_id == user_id_2) & (Message.receiver_id == user_id_1))
+    ).order_by(Message.timestamp.asc()).all()
+
+
+
+@app.route('/get_messages/<int:user_id>')
+@login_required
+def get_messages(user_id):
+    messages = get_chat_messages(current_user.id, user_id)
+    return render_template('partials/message_list.html', messages=messages, current_user=current_user)
+
+
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    socketio.run(app, host='0.0.0.0', port=port)
+
 """
 # Run the app
 if __name__ == '__main__':
     app.run(debug=True)
-"""
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
+
+"""
