@@ -1123,15 +1123,34 @@ def export_sales_data():
 
 
 
+
 @app.route('/chat')
 @login_required
 def chat():
-    # Determine who the target is
-    target_user = User.query.filter(User.role != current_user.role).first()
+    # For Sellers: Display a list of Admins
+    if current_user.role == 'seller':
+        target_users = User.query.filter_by(role='admin').all()
+    # For Admins: Display a list of Sellers
+    elif current_user.role == 'admin':
+        target_users = User.query.filter_by(role='seller').all()
 
-    if not target_user:
-        flash("No one available to chat with.", "warning")
+    if not target_users:
+        flash("No users available to chat with.", "warning")
         return redirect(url_for('admin_dashboard') if current_user.role == 'admin' else 'seller_dashboard')
+
+    return render_template('chat_list.html', target_users=target_users)
+
+
+@app.route('/chat/<int:user_id>')
+@login_required
+def chat_with_user(user_id):
+    # Ensure the target user exists
+    target_user = User.query.get_or_404(user_id)
+
+    # Prevent chatting with themselves
+    if target_user.id == current_user.id:
+        flash("You cannot chat with yourself.", "warning")
+        return redirect(url_for('chat'))
 
     messages = Message.query.filter(
         ((Message.sender_id == current_user.id) & (Message.receiver_id == target_user.id)) |
@@ -1140,18 +1159,14 @@ def chat():
 
     return render_template('chat.html', messages=messages, target_user=target_user)
 
-@app.route('/send_message', methods=['POST'])
+@app.route('/send_message/<int:user_id>', methods=['POST'])
 @login_required
-def send_message():
+def send_message(user_id):
     content = request.form['content'].strip()
     if not content:
-        return redirect(url_for('chat'))
+        return redirect(url_for('chat_with_user', user_id=user_id))
 
-    target_user = User.query.filter(User.role != current_user.role).first()
-
-    if not target_user:
-        flash("No user to message.", "warning")
-        return redirect(url_for('admin_dashboard') if current_user.role == 'admin' else 'seller_dashboard')
+    target_user = User.query.get_or_404(user_id)
 
     message = Message(
         sender_id=current_user.id,
@@ -1161,7 +1176,7 @@ def send_message():
     db.session.add(message)
     db.session.commit()
 
-    return redirect(url_for('chat'))
+    return redirect(url_for('chat_with_user', user_id=user_id))
 
 
 

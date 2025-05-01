@@ -2,59 +2,56 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Chat with {{ target_user.username }}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat</title>
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </head>
-<body class="bg-gray-100">
+<body class="bg-brown-800">
 
-  <div class="max-w-3xl mx-auto mt-10 bg-white shadow-lg rounded-lg border h-[80vh] flex flex-col">
+  <div class="container mx-auto p-6 max-w-3xl bg-brown-900 rounded-lg shadow-lg mt-10">
+    <!-- Header Section -->
+    <h2 class="text-2xl font-semibold text-gray-900 mb-6">Chat with {{ target_user.username }} ({{ target_user.location }})</h2>
 
-    <!-- Header -->
-    <div class="bg-blue-600 text-white p-4 rounded-t-lg flex justify-between items-center">
-      <h2 class="text-xl font-semibold">Chat with {{ target_user.username }}</h2>
-      <span class="text-sm">{{ current_user.role | title }}</span>
-    </div>
-
-    <!-- Messages -->
-    <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+    <!-- Chat Messages -->
+    <div class="chat-box space-y-6 mb-6 overflow-y-auto max-h-[70vh]">
       {% for message in messages %}
-        <div class="flex {% if message.sender_id == current_user.id %}justify-end{% else %}justify-start{% endif %}">
-          <div class="max-w-sm px-4 py-2 rounded-lg shadow 
-            {% if message.sender_id == current_user.id %}
-              bg-blue-100 text-right
-            {% else %}
-              bg-gray-200 text-left
-            {% endif %}">
-            <div class="text-xs text-gray-500 mb-1">
-              {{ message.sender.username }} • {{ message.timestamp.strftime('%Y-%m-%d %H:%M') }}
-            </div>
-            <div class="text-sm">{{ message.content }}</div>
+        <div class="flex {{ 'justify-end' if message.sender_id == current_user.id else 'justify-start' }}">
+          <div class="max-w-xs p-4 rounded-lg 
+                      {% if message.sender_id == current_user.id %} 
+                        bg-green-100 text-gray-900 
+                      {% else %} 
+                        bg-gray-200 text-gray-900 
+                      {% endif %}">
+            <strong class="block text-sm font-semibold">{{ 'You' if message.sender_id == current_user.id else message.sender.username }}:</strong>
+            <p class="text-base">{{ message.content }}</p>
           </div>
         </div>
       {% endfor %}
     </div>
 
-    <!-- Input -->
-    <form action="{{ url_for('send_message') }}" method="post" class="p-4 border-t bg-white">
-      <div class="flex items-center gap-2">
-        <input 
-          type="text" 
-          name="content" 
-          placeholder="Type your message..." 
-          class="flex-1 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring focus:border-blue-300" 
-          required
-        >
-        <button 
-          type="submit" 
-          class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-200"
-        >
-          <i class="bi bi-send"></i> Send
-        </button>
-      </div>
+    <!-- Message Input Form -->
+    <form method="POST" action="{{ url_for('send_message', user_id=target_user.id) }}" class="flex space-x-4 mt-4">
+      <input type="text" name="content" placeholder="Type your message..." required 
+             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
+      <button type="submit" 
+              class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 focus:outline-none transition-colors duration-300">
+        Send
+      </button>
     </form>
 
+    <!-- Return to Dashboard Button -->
+    <div class="mt-8 text-center">
+      {% if current_user.role == 'admin' %}
+        <a href="{{ url_for('admin_dashboard') }}" class="px-6 py-2 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 focus:outline-none transition-colors duration-300">
+          Return to Admin Dashboard
+        </a>
+      {% elif current_user.role == 'seller' %}
+        <a href="{{ url_for('seller_dashboard') }}" class="px-6 py-2 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 focus:outline-none transition-colors duration-300">
+          Return to Seller Dashboard
+        </a>
+      {% endif %}
+    </div>
   </div>
 
 </body>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Select User to Chat</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white">
+
+  <div class="container mx-auto p-6">
+    <!-- Conditional Heading -->
+    <h3 class="text-3xl font-semibold text-gray-900 mb-6">
+      {% if current_user.role == 'seller' %}
+        Chat with Admin
+      {% elif current_user.role == 'admin' %}
+        Chat with a Seller
+      {% endif %}
+    </h3>
+
+    <!-- User List -->
+    <div class="space-y-6 max-w-lg mx-auto">
+      {% for user in target_users %}
+        <div class="bg-[#3E2723] p-5 rounded-lg shadow-xl hover:shadow-2xl transition-shadow duration-300 ease-in-out">
+          <a href="{{ url_for('chat_with_user', user_id=user.id) }}" 
+             class="flex items-center justify-between text-lg font-medium text-white hover:text-teal-500 focus:outline-none">
+             
+            <div class="flex items-center">
+              <div class="w-14 h-14 bg-teal-500 rounded-full mr-4 flex items-center justify-center">
+                <!-- Avatar Placeholder (You can replace this with actual user avatar if available) -->
+                <span class="text-white text-xl font-bold">{{ user.username[0] }}</span>
+              </div>
+              <div>
+                <span class="block font-semibold text-white">{{ user.username }}</span>
+                <span class="block text-sm text-teal-400">{{ user.location }}</span>
+              </div>
+            </div>
+
+            <span class="text-sm text-teal-400">Start Chat</span>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Return to Dashboard Button -->
+    <div class="mt-8 text-center">
+      {% if current_user.role == 'admin' %}
+        <a href="{{ url_for('admin_dashboard') }}" class="px-6 py-2 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 focus:outline-none transition-colors duration-300">
+          Return to Admin Dashboard
+        </a>
+      {% elif current_user.role == 'seller' %}
+        <a href="{{ url_for('seller_dashboard') }}" class="px-6 py-2 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 focus:outline-none transition-colors duration-300">
+          Return to Seller Dashboard
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+</body>
+</html>
