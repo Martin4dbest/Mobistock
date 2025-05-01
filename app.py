@@ -9,7 +9,6 @@ from google.oauth2.service_account import Credentials
 from dotenv import load_dotenv  # Import the dotenv library
 import os
 import json 
-
 from flask import request, jsonify
 from datetime import datetime
 
@@ -115,6 +114,19 @@ class StockHistory(db.Model):
     admin = db.relationship('User', foreign_keys=[admin_id])
     seller = db.relationship('User', foreign_keys=[seller_id])
     product = db.relationship('Product')
+
+
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    sender = db.relationship('User', foreign_keys=[sender_id])
+    receiver = db.relationship('User', foreign_keys=[receiver_id])
+
+
 
 
 
@@ -1109,7 +1121,49 @@ def export_sales_data():
     )
 
 
-    
+
+
+@app.route('/chat')
+@login_required
+def chat():
+    # Determine who the target is
+    target_user = User.query.filter(User.role != current_user.role).first()
+
+    if not target_user:
+        flash("No one available to chat with.", "warning")
+        return redirect(url_for('admin_dashboard') if current_user.role == 'admin' else 'seller_dashboard')
+
+    messages = Message.query.filter(
+        ((Message.sender_id == current_user.id) & (Message.receiver_id == target_user.id)) |
+        ((Message.sender_id == target_user.id) & (Message.receiver_id == current_user.id))
+    ).order_by(Message.timestamp.asc()).all()
+
+    return render_template('chat.html', messages=messages, target_user=target_user)
+
+@app.route('/send_message', methods=['POST'])
+@login_required
+def send_message():
+    content = request.form['content'].strip()
+    if not content:
+        return redirect(url_for('chat'))
+
+    target_user = User.query.filter(User.role != current_user.role).first()
+
+    if not target_user:
+        flash("No user to message.", "warning")
+        return redirect(url_for('admin_dashboard') if current_user.role == 'admin' else 'seller_dashboard')
+
+    message = Message(
+        sender_id=current_user.id,
+        receiver_id=target_user.id,
+        content=content
+    )
+    db.session.add(message)
+    db.session.commit()
+
+    return redirect(url_for('chat'))
+
+
 
 """
 # Run the app
