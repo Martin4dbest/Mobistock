@@ -115,16 +115,21 @@ class StockHistory(db.Model):
     seller = db.relationship('User', foreign_keys=[seller_id])
     product = db.relationship('Product')
 
-
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    sender_id = db.Column(
+        db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False
+    )
+    receiver_id = db.Column(
+        db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False
+    )
+    
     content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
-    sender = db.relationship('User', foreign_keys=[sender_id])
-    receiver = db.relationship('User', foreign_keys=[receiver_id])
+    sender = db.relationship('User', foreign_keys=[sender_id], passive_deletes=True)
+    receiver = db.relationship('User', foreign_keys=[receiver_id], passive_deletes=True)
 
 
 
@@ -1177,6 +1182,36 @@ def send_message(user_id):
     db.session.commit()
 
     return redirect(url_for('chat_with_user', user_id=user_id))
+
+
+@app.route('/edit_message/<int:message_id>', methods=['POST'])
+def edit_message(message_id):
+    message = Message.query.get_or_404(message_id)
+
+    if message.sender_id != current_user.id:
+        return {'error': 'Unauthorized'}, 403
+
+    data = request.get_json()  # ✅ Parse JSON body
+    message.content = data.get('content')
+    db.session.commit()
+    return {'success': True}
+
+
+
+@app.route('/delete_message/<int:message_id>', methods=['POST'])
+def delete_message(message_id):
+    message = Message.query.get_or_404(message_id)
+
+    # Ensure the current user is the sender of the message
+    if message.sender_id != current_user.id:
+        flash("You can only delete your own messages.", 'danger')
+        return redirect(url_for('chat_with_user', user_id=message.receiver_id))
+
+    # Delete the message
+    db.session.delete(message)
+    db.session.commit()
+    flash('Message deleted successfully!', 'success')
+    return redirect(url_for('chat_with_user', user_id=message.receiver_id))
 
 
 
