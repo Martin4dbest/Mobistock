@@ -1258,7 +1258,6 @@ def delete_message(message_id):
     return redirect(url_for('chat_with_user', user_id=message.receiver_id))
 
 
-
 def get_chat_messages(user_id_1, user_id_2):
     return Message.query.filter(
         ((Message.sender_id == user_id_1) & (Message.receiver_id == user_id_2)) |
@@ -1266,12 +1265,18 @@ def get_chat_messages(user_id_1, user_id_2):
     ).order_by(Message.timestamp.asc()).all()
 
 
-
 @app.route('/get_messages/<int:user_id>')
 @login_required
 def get_messages(user_id):
     messages = get_chat_messages(current_user.id, user_id)
     return render_template('partials/message_list.html', messages=messages, current_user=current_user)
+
+@app.route('/clear_chat/<user_id>', methods=['POST'])
+def clear_chat(user_id):
+    # Assuming you have a Message model and you're filtering by target user
+    Message.query.filter_by(receiver_id=user_id).delete()
+    db.session.commit()
+    return jsonify({'status': 'success'})
 
 
 
