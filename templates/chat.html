@@ -89,25 +89,31 @@
       </button>
     </form>
 
-    <!-- Buttons with responsive layout -->
-    <div class="mt-10 button-group">
-      <button onclick="clearChat()" class="px-6 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 focus:outline-none transition-colors duration-300">
-        Clear Chat
-      </button>
 
-      <div>
+
+        <div class="mt-10 flex justify-between items-center">
+    <!-- Return Button -->
+    <div>
         {% if current_user.role == 'admin' %}
-          <a href="{{ url_for('admin_dashboard') }}" class="px-6 py-2 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 focus:outline-none transition-colors duration-300">
-            Return to Admin Dashboard
-          </a>
+        <a href="{{ url_for('admin_dashboard') }}" class="text-teal-600 font-semibold hover:text-teal-700 focus:outline-none transition-colors duration-300">
+            ← Return to Admin Dashboard
+        </a>
         {% elif current_user.role == 'seller' %}
-          <a href="{{ url_for('seller_dashboard') }}" class="px-6 py-2 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 focus:outline-none transition-colors duration-300">
-            Return to Seller Dashboard
-          </a>
+        <a href="{{ url_for('seller_dashboard') }}" class="text-teal-600 font-semibold hover:text-teal-700 focus:outline-none transition-colors duration-300">
+            ← Return to Seller Dashboard
+        </a>
         {% endif %}
-      </div>
     </div>
-  </div>
+    
+    <!-- Clear Chat Button -->
+    <div>
+        <button onclick="clearChat()" class="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 focus:outline-none transition-colors duration-300 text-sm">
+        Clear Chat
+        </button>
+    </div>
+    </div>
+
+
 
   <script>
     let currentMessageId = null;

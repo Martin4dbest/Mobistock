@@ -42,18 +42,18 @@
         </div>
       {% endfor %}
     </div>
-
-    <!-- Return to Dashboard Button -->
-    <div class="mt-8 text-center">
-      {% if current_user.role == 'admin' %}
-        <a href="{{ url_for('admin_dashboard') }}" class="px-6 py-2 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 focus:outline-none transition-colors duration-300">
-          Return to Admin Dashboard
+    
+    <!-- Return Button -->
+    <div>
+        {% if current_user.role == 'admin' %}
+        <a href="{{ url_for('admin_dashboard') }}" class="text-teal-600 font-semibold hover:text-teal-700 focus:outline-none transition-colors duration-300">
+            ← Return to Admin Dashboard
         </a>
-      {% elif current_user.role == 'seller' %}
-        <a href="{{ url_for('seller_dashboard') }}" class="px-6 py-2 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 focus:outline-none transition-colors duration-300">
-          Return to Seller Dashboard
+        {% elif current_user.role == 'seller' %}
+        <a href="{{ url_for('seller_dashboard') }}" class="text-teal-600 font-semibold hover:text-teal-700 focus:outline-none transition-colors duration-300">
+            ← Return to Seller Dashboard
         </a>
-      {% endif %}
+        {% endif %}
     </div>
   </div>
 
