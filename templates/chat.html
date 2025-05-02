@@ -42,7 +42,7 @@
         <div class="flex {{ 'justify-end' if message.sender_id == current_user.id else 'justify-start' }}">
           <div class="relative max-w-xs p-4 rounded-lg 
             {% if message.sender_id == current_user.id %} bg-green-100 text-gray-900 {% else %} bg-gray-200 text-gray-900 {% endif %}"
-            data-message-id="{{ message.id }}"
+            data-message-id="{{ message.id }}" 
             data-message-text="{{ message.content|tojson }}">
             <strong class="block text-sm font-semibold">{{ 'You' if message.sender_id == current_user.id else message.sender.username }}:</strong>
             <p class="text-base" id="message-text-{{ message.id }}">{{ message.content }}</p>
@@ -80,35 +80,7 @@
     </div>
   </div>
 
-  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
   <script>
-    const socket = io();
-    const senderId = {{ current_user.id }};
-    const receiverId = {{ target_user.id }};
-    const room = `${Math.min(senderId, receiverId)}_${Math.max(senderId, receiverId)}`;
-    socket.emit('join', room);
-
-    // Real-time message receive handler
-    socket.on('new_message', function (data) {
-        try {
-            const chatBox = document.getElementById('chat-box');
-            const messageEl = document.createElement('div');
-            messageEl.className = 'relative p-2 border rounded mb-2';
-            messageEl.setAttribute('data-message-id', data.message_id);
-            messageEl.setAttribute('data-message-text', data.content);
-
-            const messageText = document.createElement('span');
-            messageText.id = `message-text-${data.message_id}`;
-            messageText.textContent = `${data.sender_username}: ${data.content}`;
-
-            messageEl.appendChild(messageText);
-            chatBox.appendChild(messageEl);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        } catch (error) {
-            console.error("Error receiving message:", error);
-        }
-    });
-
     // Context Menu Logic
     let currentMessageId = null;
     let currentMessageText = null;
@@ -165,7 +137,7 @@
         hideContextMenu();
     }
 
-    // Auto-refresh chat messages every 2 seconds (without interrupting typing)
+    // Polling function to fetch new messages every 2 seconds
     setInterval(() => {
       const chatBox = document.getElementById('chat-box');
       fetch(`/get_messages/{{ target_user.id }}`)
@@ -173,7 +145,8 @@
         .then(html => {
           chatBox.innerHTML = html;
         });
-    }, 2000);
+    }, 2000);  // Poll every 2 seconds
+
   </script>
 </body>
 </html>

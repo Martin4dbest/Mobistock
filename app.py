@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 from googleapiclient.discovery import build
 from google.oauth2.service_account import Credentials
 from datetime import datetime
-from flask_socketio import SocketIO, emit, join_room
 import os
 import json
 
@@ -17,8 +16,6 @@ load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
-
-socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Configure app using environment variables
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
@@ -608,8 +605,9 @@ def admin_dashboard():
     inventories = {inv.product_id: inv for inv in Inventory.query.all()}
     orders = Order.query.all()
 
-    # 👇 Add this line to fetch all admins
+    # Fetch all admins and the current logged-in admin name
     admins = User.query.filter_by(role='admin').all()
+    admin_name = current_user.username  # Assuming the admin's name is stored in 'username'
 
     return render_template(
         'admin_dashboard.html',
@@ -618,7 +616,8 @@ def admin_dashboard():
         orders=orders,
         user_role='admin',
         search_query=search_query,
-        admins=admins  # 👈 Add this to pass admins into your template
+        admins=admins,
+        admin_name=admin_name  # Pass admin's name to the template
     )
 
 
@@ -1184,6 +1183,29 @@ def send_message(user_id):
     db.session.add(message)
     db.session.commit()
 
+    # 🚫 No Socket.IO emit, standard form submission flow
+    return redirect(url_for('chat_with_user', user_id=user_id))
+
+
+
+"""
+@app.route('/send_message/<int:user_id>', methods=['POST'])
+@login_required
+def send_message(user_id):
+    content = request.form['content'].strip()
+    if not content:
+        return redirect(url_for('chat_with_user', user_id=user_id))
+
+    target_user = User.query.get_or_404(user_id)
+
+    message = Message(
+        sender_id=current_user.id,
+        receiver_id=target_user.id,
+        content=content
+    )
+    db.session.add(message)
+    db.session.commit()
+
     # ✅ Emit the message via Socket.IO to the shared room
     room = f"{min(current_user.id, target_user.id)}_{max(current_user.id, target_user.id)}"
     socketio.emit('new_message', {
@@ -1196,14 +1218,14 @@ def send_message(user_id):
 
     return redirect(url_for('chat_with_user', user_id=user_id))
 
+"""
 
 
-
-
+"""
 @socketio.on('join')
 def handle_join(room):
     join_room(room)
-
+"""
 
 
 @app.route('/edit_message/<int:message_id>', methods=['POST'])
@@ -1253,18 +1275,18 @@ def get_messages(user_id):
 
 
 
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    socketio.run(app, host='0.0.0.0', port=port)
-
 """
 # Run the app
 if __name__ == '__main__':
     app.run(debug=True)
 
+    
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    socketio.run(app, host='0.0.0.0', port=port)
 
 """
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
