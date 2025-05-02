@@ -15,14 +15,36 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
+    .feature-container {
+      display: flex;
+      overflow-x: auto;
+      gap: 20px;
+      scroll-behavior: smooth;
+    }
+
     .feature-card {
       transition: transform 0.3s ease, box-shadow 0.3s ease;
+      flex: 0 0 auto; /* Prevents stretching and allows items to stay fixed in size */
+      width: 250px;
     }
 
     .feature-card:hover {
       transform: translateY(-6px);
       box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
         0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .feature-container::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .feature-container::-webkit-scrollbar-thumb {
+      background-color: #aaa;
+      border-radius: 10px;
+    }
+
+    .feature-container::-webkit-scrollbar-track {
+      background-color: #f0f0f0;
     }
   </style>
 </head>
@@ -64,7 +86,9 @@
         <h3 class="text-3xl font-bold text-gray-800 mb-3">Key Features</h3>
         <p class="text-gray-600 text-sm">Tools designed for internal team efficiency</p>
       </div>
-      <div class="grid gap-8 md:grid-cols-3">
+
+      <!-- Horizontal scrolling feature container -->
+      <div class="feature-container">
         <div class="feature-card bg-blue-50 p-6 rounded-xl border border-blue-100 text-center">
           <h4 class="text-xl font-semibold text-blue-700 mb-2">Real-Time Stock</h4>
           <p class="text-sm text-gray-600">Monitor inventory levels in real time and stay ahead with low stock alerts.</p>
