@@ -1132,7 +1132,34 @@ def export_sales_data():
 
 
 
+@app.route('/chat')
+@login_required
+def chat():
+    if current_user.role == 'seller':
+        target_users = User.query.filter_by(role='admin').all()
+    elif current_user.role == 'admin':
+        target_users = User.query.filter_by(role='seller').all()
+    else:
+        target_users = []
 
+    if not target_users:
+        flash("No users available to chat with.", "warning")
+        return redirect(url_for('admin_dashboard') if current_user.role == 'admin' else url_for('seller_dashboard'))
+
+    # Calculate unread message count for each target user
+    unread_counts = {}
+    for user in target_users:
+        count = Message.query.filter_by(
+            sender_id=user.id,
+            receiver_id=current_user.id,
+            is_read=False
+        ).count()
+        unread_counts[user.id] = count
+
+    return render_template('chat_list.html', target_users=target_users, unread_counts=unread_counts)
+
+
+"""
 @app.route('/chat')
 @login_required
 def chat():
@@ -1148,26 +1175,6 @@ def chat():
         return redirect(url_for('admin_dashboard') if current_user.role == 'admin' else 'seller_dashboard')
 
     return render_template('chat_list.html', target_users=target_users)
-
-"""
-
-@app.route('/chat/<int:user_id>')
-@login_required
-def chat_with_user(user_id):
-    # Ensure the target user exists
-    target_user = User.query.get_or_404(user_id)
-
-    # Prevent chatting with themselves
-    if target_user.id == current_user.id:
-        flash("You cannot chat with yourself.", "warning")
-        return redirect(url_for('chat'))
-
-    messages = Message.query.filter(
-        ((Message.sender_id == current_user.id) & (Message.receiver_id == target_user.id)) |
-        ((Message.sender_id == target_user.id) & (Message.receiver_id == current_user.id))
-    ).order_by(Message.timestamp.asc()).all()
-
-    return render_template('chat.html', messages=messages, target_user=target_user)
 """
 
 @app.route('/chat/<int:user_id>')

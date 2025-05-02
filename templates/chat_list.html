@@ -6,6 +6,8 @@
   <title>Select User to Chat</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Bootstrap Icons (for chat icon) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </head>
 <body class="bg-white">
 
@@ -25,10 +27,9 @@
         <div class="bg-[#3E2723] p-5 rounded-lg shadow-xl hover:shadow-2xl transition-shadow duration-300 ease-in-out">
           <a href="{{ url_for('chat_with_user', user_id=user.id) }}" 
              class="flex items-center justify-between text-lg font-medium text-white hover:text-teal-500 focus:outline-none">
-             
+
             <div class="flex items-center">
               <div class="w-14 h-14 bg-teal-500 rounded-full mr-4 flex items-center justify-center">
-                <!-- Avatar Placeholder (You can replace this with actual user avatar if available) -->
                 <span class="text-white text-xl font-bold">{{ user.username[0] }}</span>
               </div>
               <div>
@@ -37,23 +38,31 @@
               </div>
             </div>
 
-            <span class="text-sm text-teal-400">Start Chat</span>
+            <!-- Message Icon with optional unread badge -->
+            <div class="relative">
+              <i class="bi bi-chat-dots text-xl text-white"></i>
+              {% if unread_counts.get(user.id, 0) > 0 %}
+                <span class="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
+                  {{ unread_counts[user.id] }}
+                </span>
+              {% endif %}
+            </div>
           </a>
         </div>
       {% endfor %}
     </div>
     
     <!-- Return Button -->
-    <div>
-        {% if current_user.role == 'admin' %}
+    <div class="mt-6">
+      {% if current_user.role == 'admin' %}
         <a href="{{ url_for('admin_dashboard') }}" class="text-teal-600 font-semibold hover:text-teal-700 focus:outline-none transition-colors duration-300">
-            ← Return to Admin Dashboard
+          ← Return to Admin Dashboard
         </a>
-        {% elif current_user.role == 'seller' %}
+      {% elif current_user.role == 'seller' %}
         <a href="{{ url_for('seller_dashboard') }}" class="text-teal-600 font-semibold hover:text-teal-700 focus:outline-none transition-colors duration-300">
-            ← Return to Seller Dashboard
+          ← Return to Seller Dashboard
         </a>
-        {% endif %}
+      {% endif %}
     </div>
   </div>
 
