@@ -1279,6 +1279,12 @@ def clear_chat(user_id):
     return jsonify({'status': 'success'})
 
 
+@app.route('/help')
+def help():
+    return render_template('help.html')
+
+
+
 
 """
 # Run the app

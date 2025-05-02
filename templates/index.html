@@ -24,7 +24,7 @@
 
     .feature-card {
       transition: transform 0.3s ease, box-shadow 0.3s ease;
-      flex: 0 0 auto; /* Prevents stretching and allows items to stay fixed in size */
+      flex: 0 0 auto;
       width: 250px;
     }
 
@@ -58,9 +58,9 @@
         <img src="{{ url_for('static', filename='images/joe-logo.PNG') }}" alt="JOMAVIKO Logo" class="h-10 w-10 rounded-full">
         <h1 class="text-xl font-bold text-blue-900">JOMAVIKO CO. LTD</h1>
       </div>
-      <nav>
-        <a href="{{ url_for('login') }}"
-          class="text-sm text-blue-600 font-medium hover:text-teal-600 transition">Login</a>
+      <nav class="space-x-4">
+        <a href="{{ url_for('help') }}" class="text-sm text-blue-600 font-medium hover:text-teal-600 transition">Help</a>
+        <a href="{{ url_for('login') }}" class="text-sm text-blue-600 font-medium hover:text-teal-600 transition">Login</a>
       </nav>
     </div>
   </header>
@@ -101,7 +101,6 @@
           <h4 class="text-xl font-semibold text-yellow-700 mb-2">Admin Controls</h4>
           <p class="text-sm text-gray-600">Add, update or delete parts with access restricted to authorized personnel.</p>
         </div>
-        <!-- New Real-Time Chat Feature -->
         <div class="feature-card bg-purple-50 p-6 rounded-xl border border-purple-100 text-center">
           <h4 class="text-xl font-semibold text-purple-700 mb-2">Real-Time Chat</h4>
           <p class="text-sm text-gray-600">Instant communication between Admins and Sales Executives for quick problem-solving and coordination.</p>
