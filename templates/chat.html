@@ -28,6 +28,21 @@
     .context-menu a:hover {
       background-color: #f0f0f0;
     }
+
+    /* Ensure buttons have proper spacing */
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    /* For larger screens, keep buttons in row */
+    @media (min-width: 640px) {
+      .button-group {
+        flex-direction: row;
+        justify-content: space-between;
+      }
+    }
   </style>
 </head>
 <body class="bg-stone-800">
@@ -74,8 +89,8 @@
       </button>
     </form>
 
-    <!-- Increased margin between chat and buttons -->
-    <div class="mt-10 flex justify-between items-center"> <!-- Increased margin-top here -->
+    <!-- Buttons with responsive layout -->
+    <div class="mt-10 button-group">
       <button onclick="clearChat()" class="px-6 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 focus:outline-none transition-colors duration-300">
         Clear Chat
       </button>
