@@ -114,6 +114,7 @@ class StockHistory(db.Model):
     seller = db.relationship('User', foreign_keys=[seller_id])
     product = db.relationship('Product')
 
+
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     
@@ -126,6 +127,8 @@ class Message(db.Model):
     
     content = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    is_read = db.Column(db.Boolean, default=False)
 
     sender = db.relationship('User', foreign_keys=[sender_id], passive_deletes=True)
     receiver = db.relationship('User', foreign_keys=[receiver_id], passive_deletes=True)
@@ -1146,6 +1149,7 @@ def chat():
 
     return render_template('chat_list.html', target_users=target_users)
 
+"""
 
 @app.route('/chat/<int:user_id>')
 @login_required
@@ -1164,6 +1168,33 @@ def chat_with_user(user_id):
     ).order_by(Message.timestamp.asc()).all()
 
     return render_template('chat.html', messages=messages, target_user=target_user)
+"""
+
+@app.route('/chat/<int:user_id>')
+@login_required
+def chat_with_user(user_id):
+    # Ensure the target user exists
+    target_user = User.query.get_or_404(user_id)
+
+    # Prevent chatting with themselves
+    if target_user.id == current_user.id:
+        flash("You cannot chat with yourself.", "warning")
+        return redirect(url_for('chat'))
+
+    # Fetch all messages between current user and target user
+    messages = Message.query.filter(
+        ((Message.sender_id == user_id) & (Message.receiver_id == current_user.id)) |
+        ((Message.sender_id == current_user.id) & (Message.receiver_id == user_id))
+    ).order_by(Message.timestamp.asc()).all()
+
+    # Mark messages as read
+    unread_msgs = Message.query.filter_by(sender_id=user_id, receiver_id=current_user.id, is_read=False).all()
+    for msg in unread_msgs:
+        msg.is_read = True
+    db.session.commit()
+
+    return render_template('chat.html', messages=messages, target_user=target_user)
+
 
 
 @app.route('/send_message/<int:user_id>', methods=['POST'])
@@ -1282,6 +1313,13 @@ def clear_chat(user_id):
 @app.route('/help')
 def help():
     return render_template('help.html')
+
+@app.route('/api/unread-messages')
+@login_required
+def get_unread_messages():
+    unread_count = Message.query.filter_by(receiver_id=current_user.id, is_read=False).count()
+    return jsonify({'unread_count': unread_count})
+
 
 
 

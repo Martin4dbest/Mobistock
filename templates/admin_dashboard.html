@@ -250,6 +250,15 @@ class="transition-all duration-300 ease-in-out bg-gray-900 text-white shadow-md 
 
     <a href="{{ url_for('chat') }}" class="text-green-600 hover:text-green-800">Open Chat</a>
 
+    <a href="{{ url_for('chat') }}" class="relative inline-flex items-center">
+      <i class="bi bi-chat-dots text-xl"></i>
+      <span id="chat-badge"
+            class="hidden absolute -top-1 -right-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
+        0
+      </span>
+    </a>
+    
+
     <a href="{{ url_for('index') }}" class="block text-white mt-4 hover:text-red-400">
       Logout
     </a>
@@ -475,6 +484,28 @@ class="transition-all duration-300 ease-in-out bg-gray-900 text-white shadow-md 
       displayPage(currentPage);
     });
   </script>
+
+  <script>
+    function fetchUnreadMessages() {
+      fetch('/api/unread-messages')
+        .then(response => response.json())
+        .then(data => {
+          const badge = document.getElementById('chat-badge');
+          if (data.unread_count > 0) {
+            badge.textContent = data.unread_count;
+            badge.classList.remove('hidden');
+          } else {
+            badge.classList.add('hidden');
+          }
+        })
+        .catch(err => console.error('Failed to fetch unread messages', err));
+    }
+  
+    // Initial load and repeat every 10 seconds
+    fetchUnreadMessages();
+    setInterval(fetchUnreadMessages, 10000);
+  </script>
+  
 
   
   
