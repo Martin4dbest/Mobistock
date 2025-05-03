@@ -333,7 +333,10 @@ def get_google_sheet_data():
 SPREADSHEET_ID = os.getenv('GOOGLE_SHEET_ID')
 
 # Google Sheets API scope
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+#SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+
+SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+
 
 # Authenticate using the service account JSON from the environment
 def authenticate_google_sheets():
@@ -511,6 +514,52 @@ def get_all_products_for_admin():
             "location": p.seller.location if p.seller else "Unknown"
         } for p in products
     ])
+
+
+
+def update_google_sheet_stock(sheet_name, identification_number, new_stock):
+    service = authenticate_google_sheets()
+    sheet = service.spreadsheets()
+
+    try:
+        # Read current data from the sheet
+        result = sheet.values().get(
+            spreadsheetId=SPREADSHEET_ID,
+            range=f"{sheet_name}!A2:D"
+        ).execute()
+
+        values = result.get('values', [])
+        if not values:
+            print(f"No data found in sheet {sheet_name}")
+            return
+
+        # Locate the row with matching product ID
+        row_number = None
+        for idx, row in enumerate(values, start=2):  # start=2 because data starts from row 2
+            if len(row) > 1 and row[1] == identification_number:
+                row_number = idx
+                break
+
+        if row_number:
+            update_range = f"{sheet_name}!D{row_number}"
+            update_body = {
+                "values": [[str(new_stock)]]
+            }
+
+            sheet.values().update(
+                spreadsheetId=SPREADSHEET_ID,
+                range=update_range,
+                valueInputOption="RAW",
+                body=update_body
+            ).execute()
+
+            print(f"✅ Google Sheet updated: {sheet_name} -> Row {row_number} -> Stock: {new_stock}")
+        else:
+            print(f"❌ Product with ID {identification_number} not found in sheet {sheet_name}.")
+
+    except Exception as e:
+        print(f"❌ Error updating Google Sheet: {e}")
+
 
 
 
@@ -767,6 +816,8 @@ def place_order(product_id):
         # Update global product stock
         product.in_stock -= quantity
         db.session.commit()
+        
+        update_google_sheet_stock(product.location, product.identification_number, product.in_stock)
 
         total_amount = quantity * selling_price
 
@@ -872,6 +923,12 @@ def send_order():
         # Update stock
         product.in_stock -= quantity
         db.session.commit()
+
+        # Update global product stock
+
+        # ✅ Sync the updated stock with the Google Sheet
+        update_google_sheet_stock(product.location, product.identification_number, product.in_stock)
+
 
         # Create order
         order = Order(
